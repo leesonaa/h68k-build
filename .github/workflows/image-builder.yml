@@ -5,7 +5,7 @@ on:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: openwrt-24.10
-  CONFIG_FILE: .config
+  CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
   DEVICE: hinlink_h68k
