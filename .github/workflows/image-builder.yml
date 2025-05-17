@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: openwrt-24.10
   CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
@@ -52,8 +51,9 @@ jobs:
       run: |
         duf
         sudo -E chmod -R 777 /mnt
-        git clone $REPO_URL -b $REPO_BRANCH /mnt/openwrt
+        git clone $REPO_URL /mnt/openwrt
         cd /mnt/openwrt
+        git checkout v24.10.1
         cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
         bash add.sh
         cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
