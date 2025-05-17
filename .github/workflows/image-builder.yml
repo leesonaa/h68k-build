@@ -55,9 +55,9 @@ jobs:
         sudo -E chmod -R 777 /mnt
         git clone $REPO_URL -b $REPO_BRANCH /mnt/openwrt
         cd /mnt/openwrt
-        cp /home/runner/work/h68k-build/patch/add.sh .
+        cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
         bash add-support.sh
-        cp /home/runner/work/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
+        cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
         
     - name: Update feeds
       run: cd /mnt/openwrt && ./scripts/feeds update -a
