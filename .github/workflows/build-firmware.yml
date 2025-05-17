@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
 
       - name: Install Build Dependencies 
         env:
@@ -73,7 +73,7 @@ jobs:
             DISABLED_SERVICES="${{ github.event.inputs.DISABLED_SERVICES }}"
 
       - name: Upload Firmware Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@main
         with:
           name: firmware-${{ github.event.inputs.PROFILE }}-${{ github.run_number }}
           path: ${{ github.event.inputs.BIN_DIR || 'bin' }}
