@@ -33,7 +33,6 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
         sudo timedatectl set-timezone "$TZ"
-        find /home/runner/work/h68k-build/ -name add.sh
     
     - name: Initialization environment
       env:
@@ -56,7 +55,7 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH /mnt/openwrt
         cd /mnt/openwrt
         cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
-        bash add-support.sh
+        bash add.sh
         cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
         
     - name: Update feeds
@@ -65,7 +64,7 @@ jobs:
     - name: Install feeds
       run: cd /mnt/openwrt && ./scripts/feeds install -a
 
-    - name: Clone luci-app-argon && luci-app-daed
+    - name: Clone luci-app-argon
       run: |
            cd /mnt/openwrt
            rm -rf package/feeds/luci/luci-app-argon-config
