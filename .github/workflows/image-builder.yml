@@ -33,7 +33,7 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
         sudo timedatectl set-timezone "$TZ"
-        find /home/runner/work/h68k-build/ --name add.sh
+        find /home/runner/work/h68k-build/ -name add.sh
     
     - name: Initialization environment
       env:
