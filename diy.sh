@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Modify default IP
-sed -i 's/192.168.1.1/192.168.100.1/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/192.168.8.40/g' package/base-files/files/bin/config_generate
 
 # Modify the version number
 #sed -i "s/OpenWrt /OpenWrt build $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" package/lean/default-settings/files/zzz-default-settings
