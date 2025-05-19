@@ -15,7 +15,7 @@ cat << EOF > package/base-files/files/etc/uci-defaults/99-change-abi
 #! /bin/sh
 if [ -f "/usr/lib/opkg/status" ]; then
   sed -i -E '/6\.6\.86~/s/([^[:space:]]*~)([^-]+)(-.*)/\1422144fea623288f7402e1a9a15724c8\3/' /usr/lib/opkg/status
-   fi
+fi
 EOF
 
 # Modify default theme
