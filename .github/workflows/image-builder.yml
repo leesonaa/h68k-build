@@ -57,11 +57,12 @@ jobs:
         cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
         bash add.sh
         cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
-        cat << EOF > package/base-files/files/etc/uci-defaults/99-change-abi 
-          if [ -f "/usr/lib/opkg/status" ]; then
-          sed -i -E '/6\.6\.86~/s/([^[:space:]]*~)([^-]+)(-.*)/\1422144fea623288f7402e1a9a15724c8\3/' /usr/lib/opkg/status
-          fi
-        EOF 
+        cat << 'EOF' > package/base-files/files/etc/uci-defaults/99-change-abi 
+#! /bin/sh
+if [ -f "/usr/lib/opkg/status" ]; then
+  sed -i -E '/6\.6\.86~/s/([^[:space:]]*~)([^-]+)(-.*)/\1422144fea623288f7402e1a9a15724c8\3/' /usr/lib/opkg/status
+   fi
+EOF 
         cat package/base-files/files/etc/uci-defaults/99-change-abi
         
     - name: Update feeds
