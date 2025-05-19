@@ -10,6 +10,14 @@ sed -i '/exit 0/i uci set network.globals.ula_prefix=\nuci commit network' packa
 # Modify default 
 #sed -i '/exit 0/i uci set dhcp.lan.ra_dns="0"\nuci commit dhcp' package/emortal/default-settings/files/99-default-settings-chinese  # 关闭ipv6 ra通告dns
 
+# chang abi
+cat << EOF > package/base-files/files/etc/uci-defaults/99-change-abi 
+#! /bin/sh
+if [ -f "/usr/lib/opkg/status" ]; then
+  sed -i -E '/6\.6\.86~/s/([^[:space:]]*~)([^-]+)(-.*)/\1422144fea623288f7402e1a9a15724c8\3/' /usr/lib/opkg/status
+   fi
+EOF
+
 # Modify default theme
 sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 sed -i 's/bootstrap/argon/g' feeds/luci/modules/luci-base/root/etc/config/luci
