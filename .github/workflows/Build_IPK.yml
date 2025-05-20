@@ -40,8 +40,9 @@ jobs:
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           wget -O sdk.tar.zst.gz "https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${LATEST_TAG}/${SDK_FILE_NAME}"
           mkdir -p $SDK_DIR
-          tar --use-compress-program=unzstd -xf sdk.tar.zst.gz -C $SDK_DIR --strip-components=1
-          rm sdk.tar.zst.gz
+          gzip -d sdk.tar.zst.gz
+          tar --use-compress-program=unzstd -xf sdk.tar.zst -C $SDK_DIR --strip-components=1
+          rm sdk.tar.zst
 
       - name: Validate package input
         run: |
