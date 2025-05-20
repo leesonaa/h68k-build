@@ -74,12 +74,13 @@ jobs:
           set -e
           IFS=',' read -ra pkgs <<< "${{ github.event.inputs.packages }}"
           for pkg in "${pkgs[@]}"; do
-            pkg_clean=$(echo "$pkg" | xargs)
-            [ -z "$pkg_clean" ] && continue
-            config_var=$(echo "CONFIG_PACKAGE_${pkg_clean//-/_}" | tr '[:lower:]' '[:upper:]')
-            ./scripts/config -e "$config_var"
+          pkg_clean=$(echo "$pkg" | xargs)
+          [ -z "$pkg_clean" ] && continue
+          config_var=$(echo "CONFIG_PACKAGE_${pkg_clean//-/_}" | tr '[:lower:]' '[:upper:]')
+          echo "$config_var=y" >> .config
           done
           make defconfig
+
 
       - name: Build packages
         working-directory: ${{ env.SDK_DIR }}
