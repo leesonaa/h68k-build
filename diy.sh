@@ -38,9 +38,9 @@ echo "net.netfilter.nf_conntrack_max=165535" >> package/base-files/files/etc/sys
     sed -i 's@\(CONFIG_KERNEL_BUILD_DOMAIN=\).*@\1$"GitHub Actions"@' .config
 
 # add komod addr
-mkdir -p target/linux/rockchip/armv8/base-files/etc/opkg
-cat << EOF > target/linux/rockchip/armv8/base-files/etc/opkg/distfeeds.conf
-src/gz immortalwrt_kmod https://mirror.nju.edu.cn/immortalwrt/releases/24.10.1/targets/rockchip/armv8/kmods/6.6.86-1-422144fea623288f7402e1a9a15724c8
-EOF
+#mkdir -p target/linux/rockchip/armv8/base-files/etc/opkg
+#cat << EOF > target/linux/rockchip/armv8/base-files/etc/opkg/distfeeds.conf
+#src/gz immortalwrt_kmod https://mirror.nju.edu.cn/immortalwrt/releases/24.10.1/targets/rockchip/armv8/kmods/6.6.86-1-422144fea623288f7402e1a9a15724c8
+#EOF
 
 
