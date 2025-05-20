@@ -24,7 +24,7 @@ sed -i 's/bootstrap/argon/g' feeds/luci/modules/luci-base/root/etc/config/luci
 
 
 # Modify maximum connections
-sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=165535' package/base-files/files/etc/sysctl.conf
+echo "net.netfilter.nf_conntrack_max=165535" >> package/base-files/files/etc/sysctl.conf
 
 
 # Add kernel build user
