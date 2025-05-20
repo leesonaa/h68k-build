@@ -1,0 +1,118 @@
+name: Build IPK from SDK and Upload to Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: '要编译的包名（如 luci-app-xxx），多个包使用逗号分隔'
+        required: true
+      third_party_repo:
+        description: '（可选）第三方 GitHub 包项目地址 '
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      REPO_OWNER: leesonaa
+      REPO_NAME: h68k-build
+      SDK_FILE_NAME: immortalwrt-sdk-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst.gz
+      SDK_DIR: openwrt-sdk
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@main
+
+      - name: Install dependencies
+        run: |
+          set -e
+          sudo apt update
+          sudo apt install -y wget tar zstd build-essential libncurses5-dev gawk gettext unzip file python3 python3-distutils python3-setuptools jq
+
+      - name: Download latest SDK from Release
+        id: download_sdk
+        run: |
+          set -e
+          LATEST_TAG=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" | jq -r '.tag_name')
+          if [ -z "$LATEST_TAG" ]; then
+            exit 1
+          fi
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          wget -O sdk.tar.zst.gz "https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${LATEST_TAG}/${SDK_FILE_NAME}"
+          mkdir -p $SDK_DIR
+          tar --use-compress-program=unzstd -xf sdk.tar.zst.gz -C $SDK_DIR --strip-components=1
+          rm sdk.tar.zst.gz
+
+      - name: Validate package input
+        run: |
+          set -e
+          if [ -z "${{ github.event.inputs.packages }}" ]; then
+            exit 1
+          fi
+
+      - name: Clone third-party repo (if provided)
+        if: ${{ github.event.inputs.third_party_repo != '' }}
+        working-directory: ${{ env.SDK_DIR }}/package
+        run: |
+          set -e
+          if ! [[ "${{ github.event.inputs.third_party_repo }}" =~ ^https://github.com/ ]]; then
+            exit 1
+          fi
+          git clone --depth=1 ${{ github.event.inputs.third_party_repo }} thirdparty
+
+      - name: Prepare feeds
+        working-directory: ${{ env.SDK_DIR }}
+        run: |
+          set -e
+          ./scripts/feeds update -a || true
+          ./scripts/feeds install -a || true
+
+      - name: Configure selected packages
+        working-directory: ${{ env.SDK_DIR }}
+        run: |
+          set -e
+          IFS=',' read -ra pkgs <<< "${{ github.event.inputs.packages }}"
+          for pkg in "${pkgs[@]}"; do
+            pkg_clean=$(echo "$pkg" | xargs)
+            [ -z "$pkg_clean" ] && continue
+            config_var=$(echo "CONFIG_PACKAGE_${pkg_clean//-/_}" | tr '[:lower:]' '[:upper:]')
+            ./scripts/config -e "$config_var"
+          done
+          make defconfig
+
+      - name: Build packages
+        working-directory: ${{ env.SDK_DIR }}
+        run: |
+          set -e
+          IFS=',' read -ra pkgs <<< "${{ github.event.inputs.packages }}"
+          for pkg in "${pkgs[@]}"; do
+            pkg_clean=$(echo "$pkg" | xargs)
+            make package/$pkg_clean/compile -j$(nproc) V=s
+          done
+
+      - name: Collect built .ipk and generate Packages.gz
+        working-directory: ${{ env.SDK_DIR }}
+        run: |
+          set -e
+          mkdir -p release-packages
+          touch .build_start_marker
+          make package/index V=s
+          find bin/packages/ -name '*.ipk' -newer .build_start_marker -exec cp {} release-packages/ \;
+          ./scripts/ipkg-make-index.sh release-packages > release-packages/Packages
+          gzip -kf release-packages/Packages
+          ls release-packages > release-packages/manifest.txt
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.download_sdk.outputs.tag }}
+          name: Release ${{ steps.download_sdk.outputs.tag }} - IPK from SDK
+          body: |
+            编译的包:
+            `${{ github.event.inputs.packages }}`
+          files: |
+            ${{ env.SDK_DIR }}/release-packages/*.ipk
+            ${{ env.SDK_DIR }}/release-packages/Packages.gz
+            ${{ env.SDK_DIR }}/release-packages/manifest.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
