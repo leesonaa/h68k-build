@@ -6,7 +6,7 @@ env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: immortal-rootfs.config
   TZ: Asia/Shanghai
-  DEVICE: hinlink_h68k
+  DEVICE: armsr-armv8-generic-rootfs
   SOURCE_REPO: immortalwrt-24.10
 
 
@@ -104,3 +104,11 @@ jobs:
         name: firmware-${{ env.release }}-${{ env.DEVICE }}-${{ env.SOURCE_REPO }}
         path: ${{ env.firmware_dir }}/*
     
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v2
+      if: (!cancelled())
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.release }}-${{ env.DEVICE }}-${{ env.SOURCE_REPO }}
+        files: ${{ env.firmware_dir }}/*
