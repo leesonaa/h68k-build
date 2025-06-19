@@ -134,7 +134,7 @@ jobs:
           ### OpenWrt Image Information
 
           - Default IP: 192.168.100.1
-          - Default WAN: eth2
+          - Default WAN: eth3
           - Default Username: root
           - Default Password: none
           - Default WIFI Name: immrotalwrt
