@@ -8,7 +8,7 @@ env:
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
   DEVICE: hinlink_h68k
-  SOURCE_REPO: immortalwrt-24.10
+  SOURCE_REPO: v24.10.2
 
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
         sudo -E chmod -R 777 /mnt
         git clone $REPO_URL /mnt/openwrt
         cd /mnt/openwrt
-        git checkout v24.10.1
+        git checkout $SOURCE_REPO
         cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
         bash add.sh
         cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
