@@ -1,4 +1,4 @@
-name: Build Image & Builder
+name: Build Openwrt Image & Builder
 
 on:
   workflow_dispatch:
@@ -7,13 +7,12 @@ env:
   CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
-  DEVICE: hinlink_h68k
   SOURCE_REPO: v24.10.2
 
 
 jobs:
-  build:
-    name: Build Image & Builder
+  hinlink-h68k:
+    name: Build H68k immortalwrt image
     runs-on: ubuntu-22.04
 
     steps:
@@ -120,7 +119,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: (!cancelled())
       with:
-        name: firmware-${{ env.release }}-${{ env.DEVICE }}-${{ env.SOURCE_REPO }}
+        name: firmware-${{ env.release }}-H68k-${{ env.SOURCE_REPO }}
         path: ${{ env.firmware_dir }}/*
     
     - name: Upload firmware to release
@@ -129,7 +128,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.release }}-${{ env.DEVICE }}-${{ env.SOURCE_REPO }}
+        tag_name: ${{ env.release }}-H68k-${{ env.SOURCE_REPO }}
         body: |
           ### OpenWrt Image Information
 
@@ -143,3 +142,122 @@ jobs:
           ### OpenWrt Source Code
           - ${{ env.REPO_URL }}
         files: ${{ env.firmware_dir }}/*
+
+  cudy-tr3000:
+    name: Build tr3000 immortalwrt image
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout current repo
+      uses: actions/checkout@main
+      
+    - name: Init Env
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        sudo timedatectl set-timezone "$TZ"
+    
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E apt update && sudo apt install -y \
+        duf ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+        bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
+        g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
+        libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
+        libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
+        ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
+        python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
+        upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm
+    
+    - name: Clone source code
+      run: |
+        duf
+        sudo -E chmod -R 777 /mnt
+        git clone $REPO_URL /mnt/openwrt
+        cd /mnt/openwrt
+        
+    - name: Update feeds
+      run: cd /mnt/openwrt && ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: cd /mnt/openwrt && ./scripts/feeds install -a
+
+    - name: Clone luci-app-argon
+      run: |
+           cd /mnt/openwrt
+           rm -rf package/feeds/luci/luci-app-argon-config
+           rm -rf package/feeds/luci/luci-theme-argon
+           git clone https://github.com/jerrykuku/luci-theme-argon.git package/feeds/luci/luci-theme-argon
+           git clone https://github.com/jerrykuku/luci-app-argon-config.git package/feeds/luci-app-argon-config
+           
+    - name: Load custom configuration
+      run: |
+        [ -e tr3000.config ] && cp tr3000.config /mnt/openwrt/.config
+        chmod +x $DIY_SHELL
+        cd /mnt/openwrt
+        $GITHUB_WORKSPACE/$DIY_SHELL
+        
+    - name: Make menuconfig
+      run: |
+           cd /mnt/openwrt
+           make defconfig
+    
+    - name: Check and Push config
+      run: |
+        [ -e tr3000.config ] && cp /mnt/openwrt/.config tr3000.config
+        if [ -n "$(git status -s | grep tr3000.config)" ]; then
+          git add tr3000.config
+          git commit -m "update config"
+          git push -f
+        fi
+  
+    - name: Compile the firmware
+      run: |
+        cd /mnt/openwrt
+        echo -e "download package"
+        make download -j$(nproc)
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) V=s
+        echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
+    
+    - name: Check space usage
+      if: (!cancelled())
+      run: |
+        duf
+
+    - name: Organize files
+      if: (!cancelled())
+      run: |
+        cd /mnt/openwrt/bin/targets/*/*
+        for i in `ls` ; do gzip $i; done
+        echo "firmware_dir=$PWD" >> $GITHUB_ENV
+
+    - name: Upload firmware to GitHub Actions Artifacts
+      uses: actions/upload-artifact@main
+      if: (!cancelled())
+      with:
+        name: firmware-${{ env.release }}-tr3000-${{ env.SOURCE_REPO }}
+        path: ${{ env.firmware_dir }}/*
+    
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v2
+      if: (!cancelled())
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.release }}-tr3000-${{ env.SOURCE_REPO }}
+        body: |
+          ### OpenWrt Image Information
+
+          - Default IP: 192.168.100.1
+          - Default Username: root
+          - Default Password: none
+          - Default WIFI Name: immrotalwrt
+          - Default WIFI Password: none
+
+          ### OpenWrt Source Code
+          - ${{ env.REPO_URL }}
+        files: ${{ env.firmware_dir }}/*
+
