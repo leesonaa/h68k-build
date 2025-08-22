@@ -227,19 +227,12 @@ jobs:
       run: |
         duf
 
-    - name: Organize files
-      if: (!cancelled())
-      run: |
-        cd /mnt/openwrt/bin/targets/*/*
-        for i in `ls` ; do gzip $i; done
-        echo "firmware_dir=$PWD" >> $GITHUB_ENV
-
     - name: Upload firmware to GitHub Actions Artifacts
       uses: actions/upload-artifact@main
       if: (!cancelled())
       with:
         name: firmware-${{ env.release }}-tr3000-${{ env.SOURCE_REPO }}
-        path: ${{ env.firmware_dir }}/*
+        path: /mnt/openwrt/bin/targets/*/*/*
     
     - name: Upload firmware to release
       uses: softprops/action-gh-release@v2
@@ -259,5 +252,5 @@ jobs:
 
           ### OpenWrt Source Code
           - ${{ env.REPO_URL }}
-        files: ${{ env.firmware_dir }}/*
+        files: /mnt/openwrt/bin/targets/*/*/*
 
