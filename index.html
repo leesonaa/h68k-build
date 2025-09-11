@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>软件包下载</title>
+    <title>软件包浏览器</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* Tailwind slate-100 */
+            background-color: #f1f5f9;
         }
         .spinner-border {
             border-top-color: #3b82f6;
@@ -23,70 +23,111 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .file-list-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .file-list-table tr:hover {
+            background-color: #f3f4f6;
+        }
+        .breadcrumb-link:hover {
+            text-decoration: underline;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-100 p-8 flex items-center justify-center min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl bg-white rounded-2xl shadow-xl">
         <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-            <h1 class="text-4xl font-extrabold text-gray-800">可下载软件包</h1>
+            <h1 class="text-4xl font-extrabold text-gray-800">软件包浏览器</h1>
             <a href="https://leesonaa.github.io/h68k-build/" class="bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 ease-in-out">
                 回到主页
             </a>
         </div>
         
         <p class="text-gray-600 mb-8 text-center text-lg">
-            该页面列出了所有可用于 `rockchip/armv8` 架构的内核模块及软件包。
+            逐级浏览并下载不同版本的内核模块。
         </p>
 
         <div id="loading" class="text-center text-gray-500 py-12">
             <div class="spinner-border inline-block w-12 h-12 border-4 rounded-full" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-4 text-xl">正在加载软件包列表...</p>
+            <p class="mt-4 text-xl">正在加载...</p>
         </div>
 
-        <div id="file-list" class="hidden">
-            
-
-</div>
-
-        <p id="error-message" class="hidden text-red-500 text-center mt-6 text-lg font-medium">
-            加载失败，请检查 URL 或稍后再试。
-        </p>
+        <div id="content" class="hidden">
+            <div id="breadcrumb" class="mb-4 text-sm text-gray-500"></div>
+            <div id="file-list" class="overflow-hidden rounded-lg shadow-sm border border-gray-200"></div>
+            <p id="error-message" class="hidden text-red-500 text-center mt-6 text-lg font-medium"></p>
+        </div>
     </div>
 
     <script>
-        const PACKAGE_URL = `TARGET_ABI_PLACEHOLDER/Packages`; 
-
-        const fileListDiv = document.getElementById('file-list');
+        const BASE_URL = 'https://leesonaa.github.io/h68k-build/';
         const loadingDiv = document.getElementById('loading');
+        const contentDiv = document.getElementById('content');
+        const fileListDiv = document.getElementById('file-list');
+        const breadcrumbDiv = document.getElementById('breadcrumb');
         const errorMessage = document.getElementById('error-message');
 
-        const formatBytes = (bytes, decimals = 2) => {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        };
+        let currentPath = '';
 
-        const fetchPackages = async () => {
+        const renderPage = async (path) => {
+            currentPath = path;
+            loadingDiv.classList.remove('hidden');
+            contentDiv.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
             try {
-                const response = await fetch(PACKAGE_URL);
+                const url = BASE_URL + path;
+                const response = await fetch(url);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const text = await response.text();
-                parseAndRender(text);
+
+                if (path.endsWith('Packages')) {
+                    parseAndRenderPackages(text);
+                } else {
+                    parseAndRenderDirectory(text);
+                }
             } catch (error) {
                 loadingDiv.classList.add('hidden');
                 errorMessage.classList.remove('hidden');
-                console.error("Failed to fetch packages:", error);
+                console.error("Failed to fetch content:", error);
             }
         };
 
-        const parseAndRender = (text) => {
+        const parseAndRenderDirectory = (htmlText) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const links = Array.from(doc.querySelectorAll('td a'));
+            
+            const files = links
+                .filter(link => link.textContent.trim() !== '..' && link.textContent.trim() !== '/')
+                .map(link => {
+                    const isDir = link.textContent.endsWith('/');
+                    const name = isDir ? link.textContent.slice(0, -1) : link.textContent;
+                    return {
+                        name,
+                        isDir,
+                        url: link.getAttribute('href')
+                    };
+                });
+            
+            files.sort((a, b) => {
+                if (a.isDir !== b.isDir) {
+                    return a.isDir ? -1 : 1;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            renderBreadcrumb();
+            renderList(files);
+        };
+
+        const parseAndRenderPackages = (text) => {
             const lines = text.split('\n');
             const packages = [];
             let currentPackage = {};
@@ -107,12 +148,81 @@
                 packages.push(currentPackage);
             }
 
-            loadingDiv.classList.add('hidden');
-            fileListDiv.classList.remove('hidden');
+            renderBreadcrumb();
+            renderPackagesTable(packages);
+        };
 
+        const renderBreadcrumb = () => {
+            const pathSegments = currentPath.split('/').filter(Boolean);
+            let breadcrumbHtml = `<a href="#" class="breadcrumb-link text-blue-600 hover:text-blue-800" data-path="">Home</a>`;
+            let currentPathSoFar = '';
+
+            pathSegments.forEach((segment, index) => {
+                currentPathSoFar += segment + '/';
+                const isLast = index === pathSegments.length - 1;
+                breadcrumbHtml += `
+                    <span class="mx-1 text-gray-400">/</span>
+                    <a href="#" class="breadcrumb-link ${isLast ? 'text-gray-800 font-semibold' : 'text-blue-600 hover:text-blue-800'}" data-path="${currentPathSoFar}">${segment}</a>
+                `;
+            });
+
+            breadcrumbDiv.innerHTML = breadcrumbHtml;
+            breadcrumbDiv.querySelectorAll('.breadcrumb-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    renderPage(e.target.dataset.path);
+                });
+            });
+        };
+
+        const renderList = (files) => {
+            const tableHtml = `
+                <table class="min-w-full divide-y divide-gray-200 file-list-table">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">名称</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">类型</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${currentPath ? `
+                            <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer" data-path="${getUpPath()}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><i class="fas fa-level-up-alt mr-2"></i>..</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">目录</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"></td>
+                            </tr>
+                        ` : ''}
+                        ${files.map(file => `
+                            <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer" data-path="${currentPath}${file.url}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <i class="fas ${file.isDir ? 'fa-folder-open' : 'fa-file'} mr-2 text-blue-500"></i>${file.name}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${file.isDir ? '目录' : '文件'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    ${!file.isDir ? `<a href="${currentPath}${file.url}" class="text-blue-600 hover:text-blue-800">下载</a>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            fileListDiv.innerHTML = tableHtml;
+            fileListDiv.querySelectorAll('tr[data-path]').forEach(row => {
+                row.addEventListener('click', (e) => {
+                    const path = e.currentTarget.dataset.path;
+                    renderPage(path);
+                });
+            });
+
+            loadingDiv.classList.add('hidden');
+            contentDiv.classList.remove('hidden');
+        };
+
+        const renderPackagesTable = (packages) => {
             const tableHtml = `
                 <div class="overflow-hidden rounded-lg shadow-sm">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 file-list-table">
                         <thead class="bg-gray-100">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">文件名</th>
@@ -128,7 +238,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${pkg.Version}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${formatBytes(parseInt(pkg.Size, 10))}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="${pkg.Filename}" class="text-blue-600 hover:text-blue-800">下载</a>
+                                        <a href="${currentPath.replace('Packages', '')}${pkg.Filename}" class="text-blue-600 hover:text-blue-800">下载</a>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -137,10 +247,27 @@
                 </div>
             `;
             fileListDiv.innerHTML = tableHtml;
+            loadingDiv.classList.add('hidden');
+            contentDiv.classList.remove('hidden');
+        };
+
+        const getUpPath = () => {
+            const parts = currentPath.split('/').filter(Boolean);
+            if (parts.length <= 1) return '';
+            return parts.slice(0, -1).join('/') + '/';
+        };
+
+        const formatBytes = (bytes, decimals = 2) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         };
 
         window.onload = () => {
-            fetchPackages();
+            renderPage('');
         };
     </script>
 </body>
