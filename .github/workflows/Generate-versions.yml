@@ -1,0 +1,45 @@
+name: Generate versions.json
+
+on:
+  push:
+    branches:
+      - gh-pages # 当向 gh-pages 分支推送时触发
+
+jobs:
+  generate-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find and generate versions.json
+        run: |
+          # 扫描 ABI 文件夹，并生成 JSON 数组
+          echo "Scanning for ABI directories..."
+          versions_json="["
+          first=true
+          for dir in targets/rockchip/armv8/kmods/*/; do
+            if [ -d "$dir" ]; then
+              version=$(basename "$dir")
+              if [ "$first" = false ]; then
+                versions_json+=","
+              fi
+              versions_json+="{\"version\":\"$version\"}"
+              first=false
+            fi
+          done
+          versions_json+="]"
+
+          # 将 JSON 内容写入文件
+          echo "$versions_json" > targets/rockchip/armv8/kmods/versions.json
+          echo "Generated versions.json with content:"
+          cat targets/rockchip/armv8/kmods/versions.json
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add targets/rockchip/armv8/kmods/versions.json
+          git commit -m "chore: Automatically update versions.json" || echo "No changes to commit"
+          git push
