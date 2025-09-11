@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kmod软件包下载</title>
+    <title>软件包下载</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -36,8 +36,9 @@
         </div>
 
         <div id="file-list" class="hidden">
-            <!-- 文件列表将通过 JavaScript 动态生成 -->
-        </div>
+            
+
+</div>
 
         <p id="error-message" class="hidden text-red-500 mt-4">
             加载失败，请检查 URL 或稍后再试。
@@ -45,8 +46,7 @@
     </div>
 
     <script>
-        // 这里已经为你修正了路径，以匹配新的目录结构
-        const PACKAGE_URL = `targets/rockchip/armv8/kmods/<你的ABI哈希值>/Packages`;
+        const PACKAGE_URL = `TARGET_ABI_PLACEHOLDER/Packages`; 
 
         const fileListDiv = document.getElementById('file-list');
         const loadingDiv = document.getElementById('loading');
