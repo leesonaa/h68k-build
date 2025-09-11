@@ -3,272 +3,548 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>软件包浏览器</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>OpenWrt H68k Kernel Modules Repository</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
         }
-        .spinner-border {
-            border-top-color: #3b82f6;
-            border-right-color: #3b82f6;
-            border-bottom-color: #3b82f6;
-            border-left-color: transparent;
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: #3498db;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border-left: 4px solid #3498db;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .tag {
+            background: #3498db;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tag.latest {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        .tag.legacy {
+            background: #95a5a6;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+        }
+
+        .warning {
+            background: linear-gradient(45deg, #ff9a56, #ffad56);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #e67e22;
+        }
+        
+        .alert {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 4px solid #c0392b;
+        }
+
+        .success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #27ae60;
+        }
+
+        .abi-versions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .abi-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .abi-item:hover {
+            border-color: #3498db;
+            transform: translateX(5px);
+        }
+
+        .abi-item.selected {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+
+        .abi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .abi-version {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .abi-meta {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .abi-url {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            color: #34495e;
+            word-break: break-all;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
+            margin: 1rem auto;
         }
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .file-list-table tr:nth-child(even) {
-            background-color: #f9fafb;
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #24292e;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
         }
-        .file-list-table tr:hover {
-            background-color: #f3f4f6;
+
+        .github-link:hover {
+            background: #0366d6;
+            transform: translateY(-2px);
         }
-        .breadcrumb-link:hover {
-            text-decoration: underline;
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .abi-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 p-8 flex items-center justify-center min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl bg-white rounded-2xl shadow-xl">
-        <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-            <h1 class="text-4xl font-extrabold text-gray-800">软件包浏览器</h1>
-            <a href="https://leesonaa.github.io/h68k-build/" class="bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 ease-in-out">
-                回到主页
-            </a>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🚀 OpenWrt H68k Kmods Repository</h1>
+            <p class="subtitle">专为 H68k 设备优化的内核模块包仓库</p>
         </div>
-        
-        <p class="text-gray-600 mb-8 text-center text-lg">
-            逐级浏览并下载不同版本的内核模块。
-        </p>
+    </div>
 
-        <div id="loading" class="text-center text-gray-500 py-12">
-            <div class="spinner-border inline-block w-12 h-12 border-4 rounded-full" role="status">
-                <span class="visually-hidden">Loading...</span>
+    <div class="container">
+        <!-- Available ABI Versions Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z" />
+                </svg>
+                可用的内核 ABI 版本
+            </h2>
+            
+            <div id="abiVersions" class="abi-versions">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>正在扫描可用的内核模块版本...</p>
+                </div>
             </div>
-            <p class="mt-4 text-xl">正在加载...</p>
+
+            <div class="success">
+                💡 点击任意 ABI 版本可查看对应的 opkg 配置命令
+            </div>
         </div>
 
-        <div id="content" class="hidden">
-            <div id="breadcrumb" class="mb-4 text-sm text-gray-500"></div>
-            <div id="file-list" class="overflow-hidden rounded-lg shadow-sm border border-gray-200"></div>
-            <p id="error-message" class="hidden text-red-500 text-center mt-6 text-lg font-medium"></p>
+        <!-- Usage Instructions Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z" />
+                </svg>
+                使用说明
+            </h2>
+            <p>选择匹配您系统内核 ABI 的版本，然后添加到 <code>/etc/opkg/distfeeds.conf</code>：</p>
+            <div id="selectedConfig" class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
+                <span id="configText">请先选择一个 ABI 版本</span>
+            </div>
+            
+            <div class="alert">
+                <strong style="font-size: 1.2rem;">⚠️ 重要：</strong><br>
+                为了避免签名验证失败，请务必先将 <code>/etc/opkg.conf</code> 中的 <code>option check_signature</code> 这一行注释掉。
+            </div>
+
+            <div class="warning">
+                ⚠️ <strong>重要提醒：</strong> 请确保内核 ABI 版本与您的系统完全匹配！可通过 <code>uname -r</code> 查看系统内核版本。
+            </div>
+
+            <p>更新包列表并安装内核模块：</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
+                opkg update<br>opkg install kmod-example
+            </div>
+        </div>
+
+        <!-- Device Information Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17C5,18.1 5.89,19 7,19H9V21H11V19H13V21H15V19H17C18.1,19 19,18.1 19,17V15H21V13H19V11M17,13H7V11H17V13Z" />
+                </svg>
+                设备信息
+            </h2>
+            <ul class="info-list">
+                <li>
+                    <span>目标设备</span>
+                    <span class="tag">H68k</span>
+                </li>
+                <li>
+                    <span>架构</span>
+                    <span class="tag">rockchip/armv8</span>
+                </li>
+                <li>
+                    <span>基于版本</span>
+                    <span class="tag">ImmortalWrt v24.10.2</span>
+                </li>
+                <li>
+                    <span>默认IP</span>
+                    <span class="tag">192.168.100.1</span>
+                </li>
+                <li>
+                    <span>默认WAN口</span>
+                    <span class="tag">eth3</span>
+                </li>
+            </ul>
+
+            <a href="https://github.com/leesonaa/h68k-build" class="github-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                查看源码
+            </a>
         </div>
     </div>
 
     <script>
-        const BASE_URL = 'https://leesonaa.github.io/h68k-build/';
-        const loadingDiv = document.getElementById('loading');
-        const contentDiv = document.getElementById('content');
-        const fileListDiv = document.getElementById('file-list');
-        const breadcrumbDiv = document.getElementById('breadcrumb');
-        const errorMessage = document.getElementById('error-message');
+        let selectedVersion = null;
+        const baseUrl = 'https://leesonaa.github.io/h68k-build';
+        const kmodsPath = '/targets/rockchip/armv8/kmods/';
+        const versionsJsonUrl = `${baseUrl}${kmodsPath}versions.json`;
 
-        let currentPath = '';
+        // Function to select a version and update the UI
+        function selectVersion(version, url) {
+            selectedVersion = { version, url };
+            
+            document.querySelectorAll('.abi-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.version === version) {
+                    item.classList.add('selected');
+                }
+            });
 
-        const renderPage = async (path) => {
-            currentPath = path;
-            loadingDiv.classList.remove('hidden');
-            contentDiv.classList.add('hidden');
-            errorMessage.classList.add('hidden');
+            // Changed URL generation to use raw format with proxy
+            const rawUrl = `https://edgeone.gh-proxy.com/https://github.com/leesonaa/h68k-build/raw/refs/heads/gh-pages/targets/rockchip/armv8/${version}`;
+            const configText = `src/gz kmods_rockchip_armv8 ${rawUrl}/packages`;
+            document.getElementById('configText').textContent = configText;
+        }
 
-            try {
-                const url = BASE_URL + path;
-                const response = await fetch(url);
+        // Copy to clipboard function
+        function copyToClipboard(button) {
+            const codeBlock = button.parentElement;
+            const text = codeBlock.textContent.replace('复制', '').trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '已复制!';
+                button.style.background = '#27ae60';
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const text = await response.text();
-
-                if (path.endsWith('Packages')) {
-                    parseAndRenderPackages(text);
-                } else {
-                    parseAndRenderDirectory(text);
-                }
-            } catch (error) {
-                loadingDiv.classList.add('hidden');
-                errorMessage.classList.remove('hidden');
-                console.error("Failed to fetch content:", error);
-            }
-        };
-
-        const parseAndRenderDirectory = (htmlText) => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlText, 'text/html');
-            const links = Array.from(doc.querySelectorAll('td a'));
-            
-            const files = links
-                .filter(link => link.textContent.trim() !== '..' && link.textContent.trim() !== '/')
-                .map(link => {
-                    const isDir = link.textContent.endsWith('/');
-                    const name = isDir ? link.textContent.slice(0, -1) : link.textContent;
-                    return {
-                        name,
-                        isDir,
-                        url: link.getAttribute('href')
-                    };
-                });
-            
-            files.sort((a, b) => {
-                if (a.isDir !== b.isDir) {
-                    return a.isDir ? -1 : 1;
-                }
-                return a.name.localeCompare(b.name);
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#3498db';
+                }, 2000);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                button.textContent = '已复制!';
+                setTimeout(() => button.textContent = '复制', 2000);
             });
+        }
 
-            renderBreadcrumb();
-            renderList(files);
-        };
-
-        const parseAndRenderPackages = (text) => {
-            const lines = text.split('\n');
-            const packages = [];
-            let currentPackage = {};
-
-            lines.forEach(line => {
-                if (line.trim() === '') {
-                    if (Object.keys(currentPackage).length > 0) {
-                        packages.push(currentPackage);
-                        currentPackage = {};
-                    }
-                    return;
-                }
-                const [key, ...valueParts] = line.split(':');
-                const value = valueParts.join(':').trim();
-                currentPackage[key] = value;
-            });
-            if (Object.keys(currentPackage).length > 0) {
-                packages.push(currentPackage);
-            }
-
-            renderBreadcrumb();
-            renderPackagesTable(packages);
-        };
-
-        const renderBreadcrumb = () => {
-            const pathSegments = currentPath.split('/').filter(Boolean);
-            let breadcrumbHtml = `<a href="#" class="breadcrumb-link text-blue-600 hover:text-blue-800" data-path="">Home</a>`;
-            let currentPathSoFar = '';
-
-            pathSegments.forEach((segment, index) => {
-                currentPathSoFar += segment + '/';
-                const isLast = index === pathSegments.length - 1;
-                breadcrumbHtml += `
-                    <span class="mx-1 text-gray-400">/</span>
-                    <a href="#" class="breadcrumb-link ${isLast ? 'text-gray-800 font-semibold' : 'text-blue-600 hover:text-blue-800'}" data-path="${currentPathSoFar}">${segment}</a>
+        // Function to render the ABI versions from the fetched data
+        function renderABIVersions(versions) {
+            const abiContainer = document.getElementById('abiVersions');
+            
+            if (!versions || versions.length === 0) {
+                abiContainer.innerHTML = `
+                    <div class="loading">
+                        <p>❌ 未找到可用的内核模块版本</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            请确认您的仓库地址和目录结构是否正确，并检查是否存在 <code>versions.json</code> 文件。
+                        </p>
+                    </div>
                 `;
-            });
+                return;
+            }
 
-            breadcrumbDiv.innerHTML = breadcrumbHtml;
-            breadcrumbDiv.querySelectorAll('.breadcrumb-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    renderPage(e.target.dataset.path);
-                });
-            });
-        };
+            const versionsHtml = versions.map((versionInfo, index) => {
+                const kernelVersion = versionInfo.version.split('-')[0];
+                const abiHash = versionInfo.version.split('-')[1];
+                const isLatest = index === 0; // The first item in the sorted list is the latest
+                const fullUrl = `${baseUrl}${kmodsPath}${versionInfo.version}`;
+                
+                return `
+                    <div class="abi-item" onclick="selectVersion('${versionInfo.version}', '${fullUrl}')" data-version="${versionInfo.version}">
+                        <div class="abi-header">
+                            <div class="abi-version">${versionInfo.version}</div>
+                            <div class="tag ${isLatest ? 'latest' : 'legacy'}">${isLatest ? '最新' : '历史'}</div>
+                        </div>
+                        <div class="abi-meta">内核版本: ${kernelVersion} | ABI Hash: ${abiHash.substring(0, 8)}...</div>
+                        <div class="abi-url">${fullUrl}</div>
+                    </div>
+                `;
+            }).join('');
 
-        const renderList = (files) => {
-            const tableHtml = `
-                <table class="min-w-full divide-y divide-gray-200 file-list-table">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">名称</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">类型</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        ${currentPath ? `
-                            <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer" data-path="${getUpPath()}">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><i class="fas fa-level-up-alt mr-2"></i>..</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">目录</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"></td>
-                            </tr>
-                        ` : ''}
-                        ${files.map(file => `
-                            <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer" data-path="${currentPath}${file.url}">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    <i class="fas ${file.isDir ? 'fa-folder-open' : 'fa-file'} mr-2 text-blue-500"></i>${file.name}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${file.isDir ? '目录' : '文件'}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    ${!file.isDir ? `<a href="${currentPath}${file.url}" class="text-blue-600 hover:text-blue-800">下载</a>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            fileListDiv.innerHTML = tableHtml;
-            fileListDiv.querySelectorAll('tr[data-path]').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    const path = e.currentTarget.dataset.path;
-                    renderPage(path);
-                });
-            });
+            abiContainer.innerHTML = versionsHtml;
+            if (versions.length > 0) {
+                selectVersion(versions[0].version, `${baseUrl}${kmodsPath}${versions[0].version}`);
+            }
+        }
 
-            loadingDiv.classList.add('hidden');
-            contentDiv.classList.remove('hidden');
-        };
-
-        const renderPackagesTable = (packages) => {
-            const tableHtml = `
-                <div class="overflow-hidden rounded-lg shadow-sm">
-                    <table class="min-w-full divide-y divide-gray-200 file-list-table">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">文件名</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">版本</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">大小</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">下载</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${packages.map(pkg => `
-                                <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${pkg.Filename}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${pkg.Version}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${formatBytes(parseInt(pkg.Size, 10))}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="${currentPath.replace('Packages', '')}${pkg.Filename}" class="text-blue-600 hover:text-blue-800">下载</a>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+        // Main function to fetch and process versions
+        async function fetchAndRenderABIVersions() {
+            const abiContainer = document.getElementById('abiVersions');
+            abiContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>正在从仓库加载可用版本...</p>
                 </div>
             `;
-            fileListDiv.innerHTML = tableHtml;
-            loadingDiv.classList.add('hidden');
-            contentDiv.classList.remove('hidden');
-        };
+            
+            try {
+                console.log('Fetching versions from:', versionsJsonUrl);
+                const response = await fetch(versionsJsonUrl);
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch versions.json');
+                }
+                const versionsData = await response.json();
 
-        const getUpPath = () => {
-            const parts = currentPath.split('/').filter(Boolean);
-            if (parts.length <= 1) return '';
-            return parts.slice(0, -1).join('/') + '/';
-        };
+                if (!Array.isArray(versionsData)) {
+                    throw new Error('Invalid versions.json format');
+                }
 
-        const formatBytes = (bytes, decimals = 2) => {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        };
+                // Sort versions by a logical rule (e.g., semantic versioning)
+                versionsData.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
 
-        window.onload = () => {
-            renderPage('');
-        };
+                renderABIVersions(versionsData);
+
+            } catch (error) {
+                console.error('Error fetching versions:', error);
+                abiContainer.innerHTML = `
+                    <div class="loading">
+                        <p>❌ 无法加载版本列表</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            请确认您的仓库中已生成 <code>versions.json</code> 文件。
+                            或者您也可以直接访问：<a href="${versionsJsonUrl}" target="_blank">点击此处查看</a>
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+            fetchAndRenderABIVersions();
+        });
     </script>
 </body>
 </html>
