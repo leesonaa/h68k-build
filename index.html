@@ -28,7 +28,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 0 2rem;
         }
@@ -61,12 +61,6 @@
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
         }
 
         h2 {
@@ -173,6 +167,15 @@
             margin: 1rem 0;
             border-left: 4px solid #e67e22;
         }
+        
+        .alert {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 4px solid #c0392b;
+        }
 
         .success {
             background: linear-gradient(45deg, #56ab2f, #a8e6cf);
@@ -254,42 +257,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .repo-browser {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-
-        .folder-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            margin: 0.2rem 0;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-
-        .folder-item:hover {
-            background: #e9ecef;
-        }
-
-        .folder-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 0.5rem;
-            fill: #f39c12;
-        }
-
-        .file-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 0.5rem;
-            fill: #95a5a6;
-        }
-
+        
         .github-link {
             display: inline-flex;
             align-items: center;
@@ -315,10 +283,6 @@
             
             h1 {
                 font-size: 2rem;
-            }
-            
-            .grid {
-                grid-template-columns: 1fr;
             }
             
             .card {
@@ -351,139 +315,94 @@
     </div>
 
     <div class="container">
-        <div class="grid">
-            <!-- Available ABI Versions Card -->
-            <div class="card animate-fade-in" style="grid-column: span 2;">
-                <h2>
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z" />
-                    </svg>
-                    可用的内核 ABI 版本
-                </h2>
-                
-                <div id="abiVersions" class="abi-versions">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>正在扫描可用的内核模块版本...</p>
-                    </div>
-                </div>
-
-                <div class="success">
-                    💡 点击任意 ABI 版本可查看对应的 opkg 配置命令
+        <!-- Available ABI Versions Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z" />
+                </svg>
+                可用的内核 ABI 版本
+            </h2>
+            
+            <div id="abiVersions" class="abi-versions">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>正在扫描可用的内核模块版本...</p>
                 </div>
             </div>
 
-            <!-- Repository Structure Card -->
-            <div class="card animate-fade-in">
-                <h2>
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                    </svg>
-                    仓库结构
-                </h2>
-                <div class="repo-browser">
-                    <div class="folder-item">
-                        <svg class="folder-icon" viewBox="0 0 24 24">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                        </svg>
-                        targets/
-                    </div>
-                    <div class="folder-item" style="margin-left: 1rem;">
-                        <svg class="folder-icon" viewBox="0 0 24 24">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                        </svg>
-                        rockchip/
-                    </div>
-                    <div class="folder-item" style="margin-left: 2rem;">
-                        <svg class="folder-icon" viewBox="0 0 24 24">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                        </svg>
-                        armv8/
-                    </div>
-                    <div class="folder-item" style="margin-left: 3rem;">
-                        <svg class="folder-icon" viewBox="0 0 24 24">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                        </svg>
-                        kmods/
-                    </div>
-                    <div class="folder-item" style="margin-left: 4rem;">
-                        <svg class="folder-icon" viewBox="0 0 24 24">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
-                        </svg>
-                        <span class="highlight">[ABI-VERSION]/</span>
-                    </div>
-                    <div class="folder-item" style="margin-left: 5rem;">
-                        <svg class="file-icon" viewBox="0 0 24 24">
-                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                        </svg>
-                        *.ipk (kernel modules)
-                    </div>
-                </div>
+            <div class="success">
+                💡 点击任意 ABI 版本可查看对应的 opkg 配置命令
+            </div>
+        </div>
+
+        <!-- Usage Instructions Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z" />
+                </svg>
+                使用说明
+            </h2>
+            <p>选择匹配您系统内核 ABI 的版本，然后添加到 <code>/etc/opkg/distfeeds.conf</code>：</p>
+            <div id="selectedConfig" class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
+                <span id="configText">请先选择一个 ABI 版本</span>
+            </div>
+            
+            <div class="alert">
+                <strong style="font-size: 1.2rem;">⚠️ 重要：</strong><br>
+                为了避免签名验证失败，请务必先将 <code>/etc/opkg.conf</code> 中的 <code>option check_signature</code> 这一行注释掉。
             </div>
 
-            <!-- Usage Instructions Card -->
-            <div class="card animate-fade-in">
-                <h2>
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z" />
-                    </svg>
-                    使用说明
-                </h2>
-                <p>注释/etc/opkg.conf配置中的option check_signature,选择匹配您系统内核 ABI 的版本，然后添加到 <code>/etc/opkg/distfeeds.conf</code>：</p>
-                <div id="selectedConfig" class="code-block">
-                    <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
-                    <span id="configText">请先选择一个 ABI 版本</span>
-                </div>
-                
-                <div class="warning">
-                    ⚠️ <strong>重要提醒：</strong> 请确保内核 ABI 版本与您的系统完全匹配！可通过 <code>uname -r</code> 查看系统内核版本。
-                </div>
-
-                <p>更新包列表并安装内核模块：</p>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
-                    opkg update<br>opkg install kmod-example
-                </div>
+            <div class="warning">
+                ⚠️ <strong>重要提醒：</strong> 请确保内核 ABI 版本与您的系统完全匹配！可通过 <code>uname -r</code> 查看系统内核版本。
             </div>
 
-            <!-- Device Information Card -->
-            <div class="card animate-fade-in">
-                <h2>
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17C5,18.1 5.89,19 7,19H9V21H11V19H13V21H15V19H17C18.1,19 19,18.1 19,17V15H21V13H19V11M17,13H7V11H17V13Z" />
-                    </svg>
-                    设备信息
-                </h2>
-                <ul class="info-list">
-                    <li>
-                        <span>目标设备</span>
-                        <span class="tag">H68k</span>
-                    </li>
-                    <li>
-                        <span>架构</span>
-                        <span class="tag">rockchip/armv8</span>
-                    </li>
-                    <li>
-                        <span>基于版本</span>
-                        <span class="tag">ImmortalWrt v24.10.2</span>
-                    </li>
-                    <li>
-                        <span>默认IP</span>
-                        <span class="tag">192.168.100.1</span>
-                    </li>
-                    <li>
-                        <span>默认WAN口</span>
-                        <span class="tag">eth3</span>
-                    </li>
-                </ul>
-
-                <a href="https://github.com/leesonaa/h68k-build" class="github-link">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                    查看源码
-                </a>
+            <p>更新包列表并安装内核模块：</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
+                opkg update<br>opkg install kmod-example
             </div>
+        </div>
+
+        <!-- Device Information Card -->
+        <div class="card animate-fade-in">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17C5,18.1 5.89,19 7,19H9V21H11V19H13V21H15V19H17C18.1,19 19,18.1 19,17V15H21V13H19V11M17,13H7V11H17V13Z" />
+                </svg>
+                设备信息
+            </h2>
+            <ul class="info-list">
+                <li>
+                    <span>目标设备</span>
+                    <span class="tag">H68k</span>
+                </li>
+                <li>
+                    <span>架构</span>
+                    <span class="tag">rockchip/armv8</span>
+                </li>
+                <li>
+                    <span>基于版本</span>
+                    <span class="tag">ImmortalWrt v24.10.2</span>
+                </li>
+                <li>
+                    <span>默认IP</span>
+                    <span class="tag">192.168.100.1</span>
+                </li>
+                <li>
+                    <span>默认WAN口</span>
+                    <span class="tag">eth3</span>
+                </li>
+            </ul>
+
+            <a href="https://github.com/leesonaa/h68k-build" class="github-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                查看源码
+            </a>
         </div>
     </div>
 
@@ -504,7 +423,9 @@
                 }
             });
 
-            const configText = `src/gz kmods_rockchip_armv8 ${url}/packages`;
+            // Changed URL generation to use raw format with proxy
+            const rawUrl = `https://edgeone.gh-proxy.com/https://github.com/leesonaa/h68k-build/raw/refs/heads/gh-pages/targets/rockchip/armv8/${version}`;
+            const configText = `src/gz kmods_rockchip_armv8 ${rawUrl}/packages`;
             document.getElementById('configText').textContent = configText;
         }
 
@@ -570,7 +491,9 @@
             }).join('');
 
             abiContainer.innerHTML = versionsHtml;
-            selectVersion(versions[0].version, `${baseUrl}${kmodsPath}${versions[0].version}`);
+            if (versions.length > 0) {
+                selectVersion(versions[0].version, `${baseUrl}${kmodsPath}${versions[0].version}`);
+            }
         }
 
         // Main function to fetch and process versions
@@ -584,7 +507,9 @@
             `;
             
             try {
+                console.log('Fetching versions from:', versionsJsonUrl);
                 const response = await fetch(versionsJsonUrl);
+                console.log('Response status:', response.status);
                 if (!response.ok) {
                     throw new Error('Failed to fetch versions.json');
                 }
@@ -606,6 +531,7 @@
                         <p>❌ 无法加载版本列表</p>
                         <p style="font-size: 0.8rem; margin-top: 0.5rem;">
                             请确认您的仓库中已生成 <code>versions.json</code> 文件。
+                            或者您也可以直接访问：<a href="${versionsJsonUrl}" target="_blank">点击此处查看</a>
                         </p>
                     </div>
                 `;
