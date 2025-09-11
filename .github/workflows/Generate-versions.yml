@@ -1,7 +1,6 @@
-name: Generate versions.json
+name: Generate versions.json on gh-pages
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - gh-pages # 当向 gh-pages 分支推送时触发
@@ -11,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v4
+        with:
+          ref: gh-pages # 检出 gh-pages 分支
 
       - name: Find and generate versions.json
         run: |
