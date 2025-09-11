@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-  CONFIG_FILE: test.config
+  CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
   SOURCE_REPO: v24.10.2
@@ -197,7 +197,6 @@ jobs:
           
           # Move index.html to the correct root directory for GitHub Pages
           git checkout main -- index.html
-          sed -i "s|TARGET_ABI_PLACEHOLDER|targets/rockchip/armv8/kmods/$KERNEL_ABI|g" index.html
           mv index.html ./deploy/
 
       - name: Deploy to GitHub Pages
