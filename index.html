@@ -488,114 +488,15 @@
     </div>
 
     <script>
-        let availableVersions = [];
         let selectedVersion = null;
-
-        // GitHub Pages base URL
-        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+        const baseUrl = 'https://leesonaa.github.io/h68k-build';
         const kmodsPath = '/targets/rockchip/armv8/kmods/';
+        const versionsJsonUrl = `${baseUrl}${kmodsPath}versions.json`;
 
-        // Function to scan available ABI versions
-        async function scanABIVersions() {
-            const abiContainer = document.getElementById('abiVersions');
-            
-            try {
-                // Try to fetch a known structure or use GitHub API to list directories
-                // Since GitHub Pages doesn't support directory listing, we'll use a fallback method
-                
-                // Method 1: Try to fetch known versions (you can extend this list)
-                const possibleVersions = [
-                    '6.6.93-76991686c8a34c995d51cd167cee6163',
-                    // Add more versions as they become available
-                ];
-
-                const validVersions = [];
-                
-                for (const version of possibleVersions) {
-                    try {
-                        // Try to fetch a file from this version directory to check if it exists
-                        const testUrl = `${baseUrl}${kmodsPath}${version}/`;
-                        const response = await fetch(testUrl, { method: 'HEAD' });
-                        if (response.ok || response.status === 403) { // 403 might mean directory exists but listing disabled
-                            validVersions.push({
-                                version: version,
-                                url: `${baseUrl}${kmodsPath}${version}`,
-                                isLatest: validVersions.length === 0 // First found is considered latest
-                            });
-                        }
-                    } catch (e) {
-                        // Ignore failed attempts
-                    }
-                }
-
-                // If no versions found through testing, add a default one
-                if (validVersions.length === 0) {
-                    validVersions.push({
-                        version: '6.6.93-76991686c8a34c995d51cd167cee6163',
-                        url: `${baseUrl}${kmodsPath}6.6.93-76991686c8a34c995d51cd167cee6163`,
-                        isLatest: true
-                    });
-                }
-
-                availableVersions = validVersions;
-                renderABIVersions();
-
-            } catch (error) {
-                console.error('Failed to scan ABI versions:', error);
-                // Fallback to show at least one known version
-                availableVersions = [{
-                    version: '6.6.93-76991686c8a34c995d51cd167cee6163',
-                    url: `${baseUrl}${kmodsPath}6.6.93-76991686c8a34c995d51cd167cee6163`,
-                    isLatest: true
-                }];
-                renderABIVersions();
-            }
-        }
-
-        // Function to render ABI versions
-        function renderABIVersions() {
-            const container = document.getElementById('abiVersions');
-            
-            if (availableVersions.length === 0) {
-                container.innerHTML = `
-                    <div class="loading">
-                        <p>❌ 未找到可用的内核模块版本</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const versionsHtml = availableVersions.map((versionInfo, index) => {
-                const kernelVersion = versionInfo.version.split('-')[0];
-                const abiHash = versionInfo.version.split('-')[1];
-                const isLatest = versionInfo.isLatest;
-                
-                return `
-                    <div class="abi-item" onclick="selectVersion('${versionInfo.version}', '${versionInfo.url}')" data-version="${versionInfo.version}">
-                        <div class="abi-header">
-                            <div class="abi-version">${versionInfo.version}</div>
-                            <div class="tag ${isLatest ? 'latest' : 'legacy'}">${isLatest ? 'Latest' : 'Legacy'}</div>
-                        </div>
-                        <div class="abi-meta">内核版本: ${kernelVersion} | ABI Hash: ${abiHash.substring(0, 8)}...</div>
-                        <div class="abi-url">${versionInfo.url}</div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = versionsHtml;
-
-            // Auto-select the latest version
-            if (availableVersions.length > 0) {
-                const latest = availableVersions.find(v => v.isLatest) || availableVersions[0];
-                selectVersion(latest.version, latest.url);
-            }
-        }
-
-        // Function to select a version
+        // Function to select a version and update the UI
         function selectVersion(version, url) {
             selectedVersion = { version, url };
             
-            // Update UI
             document.querySelectorAll('.abi-item').forEach(item => {
                 item.classList.remove('selected');
                 if (item.dataset.version === version) {
@@ -603,8 +504,7 @@
                 }
             });
 
-            // Update config text
-            const configText = `src/gz kmods_rockchip_armv8 ${url}`;
+            const configText = `src/gz kmods_rockchip_armv8 ${url}/packages`;
             document.getElementById('configText').textContent = configText;
         }
 
@@ -623,7 +523,6 @@
                     button.style.background = '#3498db';
                 }, 2000);
             }).catch(() => {
-                // Fallback for older browsers
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -636,132 +535,90 @@
             });
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-            });
-
-            // Start scanning for ABI versions
-            scanABIVersions();
-        });
-
-        // Smooth scroll for any future internal links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Enhanced version detection using GitHub API (if available)
-        async function enhancedVersionDetection() {
-            try {
-                // Try GitHub API to get actual directory listing
-                const apiUrl = 'https://api.github.com/repos/leesonaa/h68k-build/contents/targets/rockchip/armv8/kmods';
-                const response = await fetch(apiUrl);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const directories = data.filter(item => item.type === 'dir');
-                    
-                    const versions = directories.map(dir => ({
-                        version: dir.name,
-                        url: `${baseUrl}${kmodsPath}${dir.name}`,
-                        isLatest: false // Will be determined later
-                    }));
-
-                    // Sort versions by date (assuming newer versions have higher numbers)
-                    versions.sort((a, b) => {
-                        const aVersion = a.version.split('-')[0];
-                        const bVersion = b.version.split('-')[0];
-                        return bVersion.localeCompare(aVersion, undefined, { numeric: true });
-                    });
-
-                    // Mark the first one as latest
-                    if (versions.length > 0) {
-                        versions[0].isLatest = true;
-                    }
-
-                    availableVersions = versions;
-                    renderABIVersions();
-                    return true;
-                }
-            } catch (error) {
-                console.log('GitHub API not available, using fallback method');
-            }
-            return false;
-        }
-
-        // Update the scanABIVersions function to use enhanced detection first
-        async function scanABIVersions() {
+        // Function to render the ABI versions from the fetched data
+        function renderABIVersions(versions) {
             const abiContainer = document.getElementById('abiVersions');
             
-            // Try enhanced detection first
-            const enhanced = await enhancedVersionDetection();
-            if (enhanced) return;
-            
-            try {
-                // Fallback method: Try to detect versions by testing known patterns
-                const possibleVersions = [
-                    '6.6.93-76991686c8a34c995d51cd167cee6163',
-                    '6.6.94-77991686c8a34c995d51cd167cee6164',
-                    '6.6.95-78991686c8a34c995d51cd167cee6165',
-                    '6.6.100-79991686c8a34c995d51cd167cee6166',
-                    // Add more potential versions
-                ];
-
-                const validVersions = [];
-                
-                // Test each possible version
-                for (const version of possibleVersions) {
-                    try {
-                        const testUrl = `${baseUrl}${kmodsPath}${version}/Packages`;
-                        const response = await fetch(testUrl, { 
-                            method: 'HEAD',
-                            cache: 'no-cache'
-                        });
-                        
-                        if (response.ok) {
-                            validVersions.push({
-                                version: version,
-                                url: `${baseUrl}${kmodsPath}${version}`,
-                                isLatest: validVersions.length === 0
-                            });
-                        }
-                    } catch (e) {
-                        // Continue to next version
-                    }
-                }
-
-                // If no versions found, add a default fallback
-                if (validVersions.length === 0) {
-                    validVersions.push({
-                        version: '6.6.93-76991686c8a34c995d51cd167cee6163',
-                        url: `${baseUrl}${kmodsPath}6.6.93-76991686c8a34c995d51cd167cee6163`,
-                        isLatest: true,
-                        fallback: true
-                    });
-                }
-
-                availableVersions = validVersions;
-                renderABIVersions();
-
-            } catch (error) {
-                console.error('Failed to scan ABI versions:', error);
+            if (!versions || versions.length === 0) {
                 abiContainer.innerHTML = `
                     <div class="loading">
-                        <p>⚠️ 无法自动检测版本，请手动检查仓库</p>
+                        <p>❌ 未找到可用的内核模块版本</p>
                         <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            您可以直接访问: <a href="${baseUrl}${kmodsPath}" target="_blank" style="color: #3498db;">kmods目录</a>
+                            请确认您的仓库地址和目录结构是否正确，并检查是否存在 <code>versions.json</code> 文件。
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const versionsHtml = versions.map((versionInfo, index) => {
+                const kernelVersion = versionInfo.version.split('-')[0];
+                const abiHash = versionInfo.version.split('-')[1];
+                const isLatest = index === 0; // The first item in the sorted list is the latest
+                const fullUrl = `${baseUrl}${kmodsPath}${versionInfo.version}`;
+                
+                return `
+                    <div class="abi-item" onclick="selectVersion('${versionInfo.version}', '${fullUrl}')" data-version="${versionInfo.version}">
+                        <div class="abi-header">
+                            <div class="abi-version">${versionInfo.version}</div>
+                            <div class="tag ${isLatest ? 'latest' : 'legacy'}">${isLatest ? '最新' : '历史'}</div>
+                        </div>
+                        <div class="abi-meta">内核版本: ${kernelVersion} | ABI Hash: ${abiHash.substring(0, 8)}...</div>
+                        <div class="abi-url">${fullUrl}</div>
+                    </div>
+                `;
+            }).join('');
+
+            abiContainer.innerHTML = versionsHtml;
+            selectVersion(versions[0].version, `${baseUrl}${kmodsPath}${versions[0].version}`);
+        }
+
+        // Main function to fetch and process versions
+        async function fetchAndRenderABIVersions() {
+            const abiContainer = document.getElementById('abiVersions');
+            abiContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>正在从仓库加载可用版本...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(versionsJsonUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch versions.json');
+                }
+                const versionsData = await response.json();
+
+                if (!Array.isArray(versionsData)) {
+                    throw new Error('Invalid versions.json format');
+                }
+
+                // Sort versions by a logical rule (e.g., semantic versioning)
+                versionsData.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
+
+                renderABIVersions(versionsData);
+
+            } catch (error) {
+                console.error('Error fetching versions:', error);
+                abiContainer.innerHTML = `
+                    <div class="loading">
+                        <p>❌ 无法加载版本列表</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            请确认您的仓库中已生成 <code>versions.json</code> 文件。
                         </p>
                     </div>
                 `;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+            fetchAndRenderABIVersions();
+        });
+    </script>
+</body>
+</html>
