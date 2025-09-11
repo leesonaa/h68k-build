@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kmod软件包下载</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 flex items-center justify-center min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl bg-white rounded-xl shadow-lg">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+            <h1 class="text-3xl font-semibold text-gray-800">可下载软件包</h1>
+            <a href="https://leesonaa.github.io/h68k-build/" class="text-blue-500 hover:text-blue-700 transition duration-300 ease-in-out">
+                回到主页
+            </a>
+        </div>
+        
+        <p class="text-gray-600 mb-4">
+            该页面列出了所有可用于 `rockchip/armv8` 架构的内核模块及软件包。
+        </p>
+
+        <div id="loading" class="text-center text-gray-500 py-8">
+            <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">正在加载软件包列表...</p>
+        </div>
+
+        <div id="file-list" class="hidden">
+            <!-- 文件列表将通过 JavaScript 动态生成 -->
+        </div>
+
+        <p id="error-message" class="hidden text-red-500 mt-4">
+            加载失败，请检查 URL 或稍后再试。
+        </p>
+    </div>
+
+    <script>
+        // 这里已经为你修正了路径，以匹配新的目录结构
+        const PACKAGE_URL = `targets/rockchip/armv8/kmods/<你的ABI哈希值>/Packages`;
+
+        const fileListDiv = document.getElementById('file-list');
+        const loadingDiv = document.getElementById('loading');
+        const errorMessage = document.getElementById('error-message');
+
+        const formatBytes = (bytes, decimals = 2) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        };
+
+        const fetchPackages = async () => {
+            try {
+                const response = await fetch(PACKAGE_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const text = await response.text();
+                parseAndRender(text);
+            } catch (error) {
+                loadingDiv.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+                console.error("Failed to fetch packages:", error);
+            }
+        };
+
+        const parseAndRender = (text) => {
+            const lines = text.split('\n');
+            const packages = [];
+            let currentPackage = {};
+
+            lines.forEach(line => {
+                if (line.trim() === '') {
+                    if (Object.keys(currentPackage).length > 0) {
+                        packages.push(currentPackage);
+                        currentPackage = {};
+                    }
+                    return;
+                }
+                const [key, ...valueParts] = line.split(':');
+                const value = valueParts.join(':').trim();
+                currentPackage[key] = value;
+            });
+            if (Object.keys(currentPackage).length > 0) {
+                packages.push(currentPackage);
+            }
+
+            loadingDiv.classList.add('hidden');
+            fileListDiv.classList.remove('hidden');
+
+            const tableHtml = `
+                <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件名</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">版本</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">大小</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">下载</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${packages.map(pkg => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${pkg.Filename}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${pkg.Version}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatBytes(parseInt(pkg.Size, 10))}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="${pkg.Filename}" class="text-indigo-600 hover:text-indigo-900">下载</a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            fileListDiv.innerHTML = tableHtml;
+        };
+
+        window.onload = () => {
+            fetchPackages();
+        };
+    </script>
+</body>
+</html>
