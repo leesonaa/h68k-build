@@ -12,7 +12,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Using Microsoft YaHei as the primary Chinese font */
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
@@ -35,7 +36,7 @@
 
         h1 {
             color: white;
-            font-size: 2.5rem;
+            font-size: 2.2rem; /* Adjusted size */
             font-weight: 600;
             margin-bottom: 0.5rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -65,7 +66,7 @@
 
         h2 {
             color: #2c3e50;
-            font-size: 1.5rem;
+            font-size: 1.4rem; /* Adjusted size */
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
@@ -264,7 +265,7 @@
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
             .card {
@@ -303,7 +304,7 @@
 
         .download-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4);
+            box-shadow: 6px 15px rgba(46, 204, 113, 0.4);
         }
     </style>
 </head>
@@ -311,7 +312,7 @@
     <div class="header">
         <div class="container">
             <h1>🚀 OpenWrt H68k Kmods Repository</h1>
-            <p class="subtitle">为 H68k 设备构建的内核模块包仓库</p>
+            <p class="subtitle">为H68K设备编译的内核模块包仓库</p>
         </div>
     </div>
 
@@ -322,7 +323,7 @@
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z" />
                 </svg>
-                可用的内核 ABI 版本
+                可用内核 ABI 版本
             </h2>
             
             <div id="abiVersions" class="abi-versions">
@@ -332,8 +333,8 @@
                 </div>
             </div>
 
-            <div class="success">
-                💡 点击任意 ABI 版本可查看对应的 opkg 配置命令
+            <div id="version-info" class="success" style="display: none;">
+                💡 已自动为你选中最新版本，直接复制下方命令即可。
             </div>
         </div>
 
@@ -345,10 +346,10 @@
                 </svg>
                 使用说明
             </h2>
-            <p>选择匹配您系统内核 ABI 的版本，然后添加到 <code>/etc/opkg/distfeeds.conf</code>：</p>
+            <p>将以下命令添加到 <code>/etc/opkg/distfeeds.conf</code> 中：</p>
             <div id="selectedConfig" class="code-block">
                 <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
-                <span id="configText">请先选择一个 ABI 版本</span>
+                <span id="configText">正在获取配置...</span>
             </div>
             
             <div class="alert">
@@ -421,9 +422,9 @@
                 }
             });
 
-            // Changed URL generation to use raw format with proxy and remove /packages
-            const rawUrl = `https://edgeone.gh-proxy.com/https://raw.githubusercontent.com/leesonaa/h68k-build/refs/heads/gh-pages/targets/rockchip/armv8/kmods/${version}`;
-            const configText = `src/gz kmods_rockchip_armv8 ${rawUrl}`;
+            // Using the direct raw GitHub URL to ensure it's always valid
+            const opkgUrl = `https://raw.githubusercontent.com/leesonaa/h68k-build/gh-pages/targets/rockchip/armv8/kmods/${version}`;
+            const configText = `src/gz kmods_rockchip_armv8 ${opkgUrl}`;
             document.getElementById('configText').textContent = configText;
         }
 
@@ -457,41 +458,48 @@
         // Function to render the ABI versions from the fetched data
         function renderABIVersions(versions) {
             const abiContainer = document.getElementById('abiVersions');
-            
+            const versionInfoDiv = document.getElementById('version-info');
+
             if (!versions || versions.length === 0) {
                 abiContainer.innerHTML = `
                     <div class="loading">
                         <p>❌ 未找到可用的内核模块版本</p>
                         <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            请确认您的仓库地址和目录结构是否正确，并检查是否存在 <code>versions.json</code> 文件。
+                            请确认您的仓库中已生成 <code>versions.json</code> 文件。
+                            或者您也可以直接访问：<a href="${versionsJsonUrl}" target="_blank">点击此处查看</a>
                         </p>
                     </div>
                 `;
+                versionInfoDiv.style.display = 'none';
                 return;
             }
 
+            // Automatically select the latest version
+            const latestVersion = versions[0];
+            selectVersion(latestVersion.version, `https://raw.githubusercontent.com/leesonaa/h68k-build/gh-pages/targets/rockchip/armv8/kmods/${latestVersion.version}`);
+
+            // Render the list of versions
             const versionsHtml = versions.map((versionInfo, index) => {
                 const kernelVersion = versionInfo.version.split('-')[0];
                 const abiHash = versionInfo.version.split('-')[1];
-                const isLatest = index === 0; // The first item in the sorted list is the latest
-                const fullUrl = `${baseUrl}${kmodsPath}${versionInfo.version}`;
+                const isLatest = index === 0;
                 
+                // If there's only one version, make it non-clickable
+                const onclickAttr = versions.length > 1 ? `onclick="selectVersion('${versionInfo.version}', 'https://raw.githubusercontent.com/leesonaa/h68k-build/gh-pages/targets/rockchip/armv8/kmods/${versionInfo.version}')"` : '';
+
                 return `
-                    <div class="abi-item" onclick="selectVersion('${versionInfo.version}', '${fullUrl}')" data-version="${versionInfo.version}">
+                    <div class="abi-item ${isLatest ? 'selected' : ''}" ${onclickAttr} data-version="${versionInfo.version}">
                         <div class="abi-header">
                             <div class="abi-version">${versionInfo.version}</div>
                             <div class="tag ${isLatest ? 'latest' : 'legacy'}">${isLatest ? '最新' : '历史'}</div>
                         </div>
                         <div class="abi-meta">内核版本: ${kernelVersion} | ABI Hash: ${abiHash.substring(0, 8)}...</div>
-                        <div class="abi-url">${fullUrl}</div>
                     </div>
                 `;
             }).join('');
 
             abiContainer.innerHTML = versionsHtml;
-            if (versions.length > 0) {
-                selectVersion(versions[0].version, `${baseUrl}${kmodsPath}${versions[0].version}`);
-            }
+            versionInfoDiv.style.display = versions.length > 1 ? 'block' : 'none';
         }
         
         // Main function to fetch and process versions
@@ -505,9 +513,7 @@
             `;
             
             try {
-                console.log('Fetching versions from:', versionsJsonUrl);
                 const response = await fetch(versionsJsonUrl);
-                console.log('Response status:', response.status);
                 if (!response.ok) {
                     throw new Error('Failed to fetch versions.json');
                 }
@@ -517,9 +523,7 @@
                     throw new Error('Invalid versions.json format');
                 }
 
-                // Sort versions by a logical rule (e.g., semantic versioning)
                 versionsData.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
-
                 renderABIVersions(versionsData);
                 
             } catch (error) {
