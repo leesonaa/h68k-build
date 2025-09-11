@@ -39,12 +39,12 @@ jobs:
           sudo -E apt update && sudo apt install -y \
           duf ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
           bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
-          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
+          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i326 libelf-dev \
           libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
           libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
           ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
           python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
-          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm
+          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm jq
       
       - name: Clone source code
         run: |
@@ -98,11 +98,30 @@ jobs:
         run: |
           duf
       
-      - name: Get Kernel ABI
-        id: kernel_abi
+      - name: Get Kernel ABI and Version
+        id: kernel_info
         run: |
-          ABI=$(jq -r '.vermagic' /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json)
-          echo "kernel_abi=$ABI" >> $GITHUB_ENV
+          if [ ! -f /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json ]; then
+            echo "::error::profiles.json not found."
+            exit 1
+          fi
+          
+          KERNEL_VERSION=$(jq -r '.linux_kernel.version' /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json)
+          VERMAGIC=$(jq -r '.linux_kernel.vermagic' /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json)
+          
+          if [ -z "$KERNEL_VERSION" ] || [ "$KERNEL_VERSION" == "null" ]; then
+            echo "::error::Could not extract Kernel Version from profiles.json, or it was null."
+            exit 1
+          fi
+          
+          if [ -z "$VERMAGIC" ] || [ "$VERMAGIC" == "null" ]; then
+            echo "::error::Could not extract vermagic from profiles.json, or it was null."
+            exit 1
+          fi
+          
+          COMBINED_ABI="${KERNEL_VERSION}-${VERMAGIC}"
+          echo "kernel_abi=$COMBINED_ABI" >> "$GITHUB_ENV"
+          echo "Detected Kernel ABI: $COMBINED_ABI"
           
       - name: Upload packages as an artifact
         uses: actions/upload-artifact@main
@@ -118,7 +137,7 @@ jobs:
           rm -rf packages *.buildinfo *.manifest *.bin
           sed -i '/buildinfo/d; /\.bin/d; /\.manifest/d' sha256sums
           for i in `ls` ; do gzip $i; done
-          echo "firmware_dir=$PWD" >> $GITHUB_ENV
+          echo "firmware_dir=$PWD" >> "$GITHUB_ENV"
       
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v2
@@ -148,7 +167,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -164,9 +183,15 @@ jobs:
       
       - name: Create directory structure and move files
         run: |
-          mkdir -p ./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}
-          mv ./packages/* ./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}/
+          if [ -z "${{ env.kernel_abi }}" ] || [ "${{ env.kernel_abi }}" == "null" ]; then
+            echo "::error::Kernel ABI variable is empty or 'null'. Cannot deploy packages."
+            exit 1
+          fi
+          echo "Deploying to ABI directory: ${{ env.kernel_abi }}"
+          mkdir -p "./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}"
+          mv ./packages/* "./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}/"
           git checkout main -- index.html
+          sed -i "s|TARGET_ABI_PLACEHOLDER|targets/rockchip/armv8/kmods/${{ env.kernel_abi }}|g" index.html
           mv index.html ./deploy/
 
       - name: Deploy to GitHub Pages
