@@ -191,9 +191,11 @@ jobs:
             exit 1
           fi
           echo "Deploying to ABI directory: $KERNEL_ABI"
+          
           mkdir -p "./deploy/targets/rockchip/armv8/kmods/$KERNEL_ABI"
           mv ./packages/* "./deploy/targets/rockchip/armv8/kmods/$KERNEL_ABI/"
           
+          # Move index.html to the correct root directory for GitHub Pages
           git checkout main -- index.html
           sed -i "s|TARGET_ABI_PLACEHOLDER|targets/rockchip/armv8/kmods/$KERNEL_ABI|g" index.html
           mv index.html ./deploy/
