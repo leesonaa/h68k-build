@@ -14,6 +14,8 @@ jobs:
   build-firmware:
     name: Build H68k immortalwrt image
     runs-on: ubuntu-22.04
+    outputs:
+      kernel_abi: ${{ steps.kernel_info.outputs.kernel_abi }}
 
     steps:
       - name: Checkout current repo
@@ -120,7 +122,7 @@ jobs:
           fi
           
           COMBINED_ABI="${KERNEL_VERSION}-${VERMAGIC}"
-          echo "kernel_abi=$COMBINED_ABI" >> "$GITHUB_ENV"
+          echo "::set-output name=kernel_abi::$COMBINED_ABI"
           echo "Detected Kernel ABI: $COMBINED_ABI"
           
       - name: Upload packages as an artifact
@@ -183,15 +185,17 @@ jobs:
       
       - name: Create directory structure and move files
         run: |
-          if [ -z "${{ env.kernel_abi }}" ] || [ "${{ env.kernel_abi }}" == "null" ]; then
+          KERNEL_ABI="${{ needs.build-firmware.outputs.kernel_abi }}"
+          if [ -z "$KERNEL_ABI" ] || [ "$KERNEL_ABI" == "null" ]; then
             echo "::error::Kernel ABI variable is empty or 'null'. Cannot deploy packages."
             exit 1
           fi
-          echo "Deploying to ABI directory: ${{ env.kernel_abi }}"
-          mkdir -p "./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}"
-          mv ./packages/* "./deploy/targets/rockchip/armv8/kmods/${{ env.kernel_abi }}/"
+          echo "Deploying to ABI directory: $KERNEL_ABI"
+          mkdir -p "./deploy/targets/rockchip/armv8/kmods/$KERNEL_ABI"
+          mv ./packages/* "./deploy/targets/rockchip/armv8/kmods/$KERNEL_ABI/"
+          
           git checkout main -- index.html
-          sed -i "s|TARGET_ABI_PLACEHOLDER|targets/rockchip/armv8/kmods/${{ env.kernel_abi }}|g" index.html
+          sed -i "s|TARGET_ABI_PLACEHOLDER|targets/rockchip/armv8/kmods/$KERNEL_ABI|g" index.html
           mv index.html ./deploy/
 
       - name: Deploy to GitHub Pages
