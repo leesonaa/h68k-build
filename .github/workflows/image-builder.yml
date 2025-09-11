@@ -122,7 +122,7 @@ jobs:
           fi
           
           COMBINED_ABI="${KERNEL_VERSION}-${VERMAGIC}"
-          echo "::set-output name=kernel_abi::$COMBINED_ABI"
+          echo "kernel_abi=$COMBINED_ABI" >> $GITHUB_OUTPUT
           echo "Detected Kernel ABI: $COMBINED_ABI"
           
       - name: Upload packages as an artifact
