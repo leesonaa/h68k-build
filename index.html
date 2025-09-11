@@ -422,7 +422,7 @@
             });
 
             // Changed URL generation to use raw format with proxy and remove /packages
-            const rawUrl = `https://edgeone.gh-proxy.com/https://github.com/leesonaa/h68k-build/raw/refs/heads/gh-pages/targets/rockchip/armv8/${version}`;
+            const rawUrl = `https://edgeone.gh-proxy.com/https://raw.githubusercontent.com/leesonaa/h68k-build/refs/heads/gh-pages/targets/rockchip/armv8/kmods/${version}`;
             const configText = `src/gz kmods_rockchip_armv8 ${rawUrl}`;
             document.getElementById('configText').textContent = configText;
         }
