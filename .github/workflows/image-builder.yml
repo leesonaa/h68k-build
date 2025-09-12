@@ -32,13 +32,13 @@ jobs:
           repository: leesonaa/immortalwrt-h68k
           token: ${{ secrets.GH_TOKEN }}
           path: patch
-      
+          
       - name: Init Env
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           sudo timedatectl set-timezone "$TZ"
-      
+          
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -52,7 +52,7 @@ jobs:
           ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
           python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
           upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm jq
-      
+          
       - name: Clone source code
         run: |
           duf
@@ -63,13 +63,13 @@ jobs:
           cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
           bash add.sh
           cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
-      
+          
       - name: Update feeds
         run: cd /mnt/openwrt && ./scripts/feeds update -a
 
       - name: Install feeds
         run: cd /mnt/openwrt && ./scripts/feeds install -a
-            
+        
       - name: Load custom configuration
         run: |
           [ -e $CONFIG_FILE ] && cp $CONFIG_FILE /mnt/openwrt/.config
@@ -81,7 +81,7 @@ jobs:
         run: |
             cd /mnt/openwrt
             make defconfig
-      
+          
       - name: Check and Push config
         run: |
           [ -e $CONFIG_FILE ] && cp /mnt/openwrt/.config $CONFIG_FILE
@@ -90,7 +90,7 @@ jobs:
             git commit -m "update config"
             git push -f
           fi
-      
+          
       - name: Compile the firmware
         run: |
           cd /mnt/openwrt
@@ -99,12 +99,12 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) V=s
           echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
-      
+          
       - name: Check space usage
         if: (!cancelled())
         run: |
           duf
-      
+          
       - name: Get Kernel ABI and Version
         id: kernel_info
         run: |
@@ -145,7 +145,7 @@ jobs:
           sed -i '/buildinfo/d; /\.bin/d; /\.manifest/d' sha256sums
           for i in `ls` ; do gzip $i; done
           echo "firmware_dir=$PWD" >> "$GITHUB_ENV"
-      
+          
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v2
         if: (!cancelled())
@@ -187,7 +187,7 @@ jobs:
       - name: Clean up temporary files
         run: |
           rm -rf ./packages/tmp
-      
+          
       - name: Create directory structure and move files
         run: |
           KERNEL_ABI="${{ needs.build-firmware.outputs.kernel_abi }}"
@@ -203,6 +203,35 @@ jobs:
           # Move index.html to the correct root directory for GitHub Pages
           git checkout main -- index.html
           mv index.html ./deploy/
+
+      # 新增步骤：在部署前生成 versions.json 文件
+      - name: Generate versions.json
+        run: |
+          # 检查 deploy 目录是否存在，如果不存在则退出
+          if [ ! -d "./deploy" ]; then
+            echo "::error::Deploy directory not found."
+            exit 1
+          fi
+          
+          # 构建 JSON 数组，包含所有已部署的 ABI 版本
+          versions_json="["
+          first=true
+          # 使用 find 命令查找所有 ABI 目录
+          for dir in $(find ./deploy/targets/rockchip/armv8/kmods/ -mindepth 1 -maxdepth 1 -type d); do
+            version=$(basename "$dir")
+            if [ "$first" = false ]; then
+              versions_json+=","
+            fi
+            versions_json+="{\"version\":\"$version\"}"
+            first=false
+          done
+          versions_json+="]"
+
+          # 将生成的 JSON 写入文件
+          mkdir -p ./deploy/targets/rockchip/armv8/kmods/
+          echo "$versions_json" > ./deploy/targets/rockchip/armv8/kmods/versions.json
+          echo "Generated versions.json with content:"
+          cat ./deploy/targets/rockchip/armv8/kmods/versions.json
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
