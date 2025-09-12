@@ -1,14 +1,19 @@
-name: Build Openwrt Image & Builder
+name: Build Openwrt Image
 
 on:
   workflow_dispatch:
+    inputs:
+      source_repo:
+        description: "选择要编译的 OpenWrt 源分支或 tag"
+        required: true
+        default: v24.10.2
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
-  SOURCE_REPO: v24.10.2
+  SOURCE_REPO: ${{ github.event.inputs.source_repo }}
 
 jobs:
   build-firmware:
