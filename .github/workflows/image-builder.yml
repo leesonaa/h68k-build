@@ -170,12 +170,13 @@ jobs:
       - name: build old device
         run: |
           cd /mnt/openwrt
-          make target/linux/clean
+          make clean
           git restore .
           git clean -fdq
           cp /home/runner/work/h68k-build/h68k-build/patch/add2022.sh .
           bash add2022.sh
           cp /home/runner/work/h68k-build/h68k-build/patch/001-add-2022-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
+          $GITHUB_WORKSPACE/$DIY_SHELL
           make defconfig
           make -j$(nproc) V=s
 
@@ -194,7 +195,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.release }}-H68k-v2022-${{ env.SOURCE_REPO }}
+          tag_name: ${{ env.release }}-H68k-v2022旧版硬件-${{ env.SOURCE_REPO }}
           body: |
             ### OpenWrt Image Information
 
