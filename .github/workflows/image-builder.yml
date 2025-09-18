@@ -172,12 +172,12 @@ jobs:
           cd /mnt/openwrt
           make target/linux/clean
           git restore .
-          git clean -fd
+          git clean -fdq
           cp /home/runner/work/h68k-build/h68k-build/patch/add2022.sh .
           bash add2022.sh
           cp /home/runner/work/h68k-build/h68k-build/patch/001-add-2022-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
           make defconfig
-          make -j$(nproc)
+          make -j$(nproc) V=s
 
       - name: Organize old devices firmware files
         if: (!cancelled())
