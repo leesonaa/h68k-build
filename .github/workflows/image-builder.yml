@@ -247,32 +247,19 @@ jobs:
           git checkout main -- index.html
           mv index.html ./deploy/
 
-      # 新增步骤：在部署前生成 versions.json 文件
       - name: Generate versions.json
         run: |
-          # 检查 deploy 目录是否存在，如果不存在则退出
-          if [ ! -d "./deploy" ]; then
-            echo "::error::Deploy directory not found."
+          # 检查 deploy 目录是否存在
+          if [ ! -d "./deploy/targets/rockchip/armv8/kmods/" ]; then
+            echo "::error::Deploy kmods directory not found."
             exit 1
           fi
-          
-          # 构建 JSON 数组，包含所有已部署的 ABI 版本
-          versions_json="["
-          first=true
-          # 使用 find 命令查找所有 ABI 目录
-          for dir in $(find ./deploy/targets/rockchip/armv8/kmods/ -mindepth 1 -maxdepth 1 -type d); do
-            version=$(basename "$dir")
-            if [ "$first" = false ]; then
-              versions_json+=","
-            fi
-            versions_json+="{\"version\":\"$version\"}"
-            first=false
-          done
-          versions_json+="]"
 
-          # 将生成的 JSON 写入文件
-          mkdir -p ./deploy/targets/rockchip/armv8/kmods/
-          echo "$versions_json" > ./deploy/targets/rockchip/armv8/kmods/versions.json
+          # 用 jq 收集所有版本目录名生成 JSON 数组
+          find ./deploy/targets/rockchip/armv8/kmods/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+            | jq -R . | jq -s '[.[] | {version:.}]' \
+            > ./deploy/targets/rockchip/armv8/kmods/versions.json
+
           echo "Generated versions.json with content:"
           cat ./deploy/targets/rockchip/armv8/kmods/versions.json
 
