@@ -3,8 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenWrt H68k Kernel Modules Repository</title>
+    <title>OpenWrt H68k Kmods Repository</title>
     <style>
+        /* --- 核心主题颜色定义： Elegant-Dark (优雅深色主题) --- */
+        :root {
+            /* 动态背景颜色变量，将由 JS 实时更新 */
+            --color-bg-start: #27293a; 
+            --color-bg-end: #503544; 
+
+            /* 简化的固定UI颜色 */
+            --color-text-light: #ffffff;  
+            --color-text-secondary: rgba(255, 255, 255, 0.8); 
+            --color-accent-blue: #60a5fa; 
+            --color-alert-red: #ff708a; 
+            --color-warning-orange: #f4d03f; 
+            --color-base-dark: #1a1a1a; 
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,30 +27,68 @@
         }
 
         body {
-            /* Using Microsoft YaHei as the primary Chinese font */
             font-family: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(-45deg, #1d2671, #0f0c29, #4a00e0, #8e2de2);
-            background-size: 400% 400%;
-            animation: animateGradient 35s ease infinite;
+            
+            /* 【动态背景渐变】 关键修改：改为 to top (从底到顶) 的渐变 */
+            background: linear-gradient(to top, var(--color-bg-start) 0%, var(--color-bg-end) 100%); 
+            
+            /* 【平滑过渡效果】 5秒的平滑过渡，实现"日光"缓慢变化效果 */
+            transition: background 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            
             min-height: 100vh;
-            color: #ecf0f1;
+            color: var(--color-text-light);
             padding-bottom: 2rem;
+            
+            position: relative;
+            overflow-x: hidden; 
+        }
+
+        /* 【静态高斯模糊光斑 - 蓝色光斑，与深色背景形成柔和对比】 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 80vw;
+            height: 80vh;
+            transform: translate(-50%, -50%);
+            /* 居中一个柔和的蓝色径向渐变光斑 */
+            background: radial-gradient(circle at center, 
+                rgba(96, 165, 250, 0.25), /* 使用新的 accent 颜色 */
+                transparent 60% 
+            );
+            filter: blur(180px); 
+            z-index: -1;
+            opacity: 0.7; 
+        }
+
+        /* 【静态科技网格/点阵】 - 保持低调的视觉纹理 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05; /* 降低透明度 */
+            
+            /* 网格线颜色与背景色保持协调 */
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 25px 25px;
         }
         
-        @keyframes animateGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-
+        
         .header {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
             padding: 2rem 0;
             text-align: center;
             margin-bottom: 2rem;
+            color: var(--color-text-light);
         }
 
         .container {
@@ -48,7 +101,7 @@
             display: flex;
             flex-direction: column;
             gap: 2rem;
-            perspective: 1000px; /* Crucial for the 3D tilt effect */
+            perspective: 1000px;
         }
         
         @media (min-width: 992px) {
@@ -73,72 +126,100 @@
         }
 
         h1 {
-            color: white;
-            font-size: 2.2rem;
-            font-weight: 600;
+            color: var(--color-text-light);
+            font-size: 2.5rem; 
+            font-weight: 700;
             margin-bottom: 0.5rem;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            text-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(0, 0, 0, 0.6); 
         }
 
         .subtitle {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--color-text-secondary);
             font-size: 1.2rem;
             margin-bottom: 1rem;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
 
-        /* Modified card class for shine effect */
+        /* Card: 完全透明设计 */
         .card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            background: transparent; 
+            border-radius: 16px; 
             padding: 2rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            transition: all 0.3s ease;
             position: relative;
-            overflow: hidden; /* Hide the overflow from the shine effect */
+            overflow: hidden;
+            color: var(--color-text-light);
         }
         
+        /* 斜向流光动画效果 */
         .card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transform: skewX(-30deg);
-            transition: transform 0.7s ease;
+            top: -50%;
+            left: -150%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                transparent 40%,
+                rgba(96, 165, 250, 0.6) 50%,
+                transparent 60%,
+                transparent
+            );
+            transition: transform 0.8s ease;
+            z-index: 1;
+            pointer-events: none;
+            transform: translateX(-100%);
         }
         
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        
+        /* 悬停时触发斜向流光效果 */
         .card:hover::before {
-            transform: translateX(200%) skewX(-30deg);
+            transform: translateX(100%);
+        }
+        
+        /* 悬停其他效果 */
+        .card:hover {
+            transform: translateY(-5px); 
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 
+                0 0 20px rgba(96, 165, 250, 0.3), 
+                0 10px 30px rgba(0, 0, 0, 0.2); 
+        }
+        
+        /* 确保卡片内容在流光之上 */
+        .card > * {
+            position: relative;
+            z-index: 2;
         }
 
+
+
         h2 {
-            color: #ecf0f1;
-            font-size: 1.4rem;
+            color: var(--color-text-light);
+            font-size: 1.5rem;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
 
         .icon {
             width: 24px;
             height: 24px;
-            fill: #bdc3c7; /* Updated icon color to match new gradient */
+            fill: var(--color-accent-blue); 
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
         }
 
         .code-block {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ecf0f1;
+            background: rgba(0, 0, 0, 0.2); 
+            color: var(--color-text-light);
             padding: 1rem;
             border-radius: 8px;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -146,27 +227,21 @@
             line-height: 1.5;
             overflow-x: auto;
             margin: 1rem 0;
-            border-left: 4px solid #bdc3c7; /* Updated border color */
+            border-left: 4px solid var(--color-accent-blue); 
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
         }
         
-        .code-block pre {
-            color: #ecf0f1;
-        }
-        
-        .code-block code {
-            color: #ecf0f1;
-        }
-        
-        .code-block #configText {
-            color: #ecf0f1;
+        .code-block pre, .code-block code, .code-block #configText {
+            color: var(--color-text-light);
         }
 
         .copy-btn {
             position: absolute;
             top: 0.5rem;
             right: 0.5rem;
-            background: rgba(189, 195, 199, 0.7); /* Updated copy button color */
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
             padding: 0.3rem 0.6rem;
@@ -179,15 +254,8 @@
 
         .copy-btn:hover {
             opacity: 1;
-            background: #bdc3c7;
-        }
-
-        .highlight {
-            background: rgba(189, 195, 199, 0.2);
-            color: #bdc3c7;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-weight: 600;
+            background: var(--color-accent-blue);
+            color: var(--color-base-dark);
         }
 
         .info-list {
@@ -197,73 +265,68 @@
 
         .info-list li {
             padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(236, 240, 241, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .info-list li:last-child {
-            border-bottom: none;
+            color: var(--color-text-light);
         }
 
         .tag {
-            background: #34495e;
-            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--color-text-light);
             padding: 0.2rem 0.6rem;
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .tag.latest {
-            background: #2ecc71;
+            background: var(--color-accent-blue); 
+            color: var(--color-base-dark);
             animation: pulse 2s infinite;
         }
 
-        .tag.legacy {
-            background: #95a5a6;
-        }
-
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0); }
         }
 
         .warning {
-            background: rgba(255, 154, 86, 0.2);
-            color: #f39c12;
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--color-warning-orange);
             padding: 1rem;
             border-radius: 8px;
             margin: 1rem 0;
-            border-left: 4px solid #f39c12;
+            border-left: 4px solid var(--color-warning-orange);
         }
         
         .alert {
-            background: rgba(192, 57, 43, 0.2);
-            color: #e74c3c;
+            background: rgba(255, 112, 138, 0.15); /* 使用柔和的 red */
+            color: var(--color-alert-red);
             padding: 1rem;
             border-radius: 8px;
             margin-top: 1rem;
-            border-left: 4px solid #e74c3c;
+            border-left: 4px solid var(--color-alert-red);
         }
         
         .alert strong {
-            color: #e74c3c;
+            color: var(--color-alert-red);
         }
 
         .success {
-            background: rgba(86, 171, 47, 0.2);
-            color: #2ecc71;
+            background: rgba(96, 165, 250, 0.15); 
+            color: var(--color-accent-blue); 
             padding: 1rem;
             border-radius: 8px;
             margin: 1rem 0;
-            border-left: 4px solid #2ecc71;
+            border-left: 4px solid var(--color-accent-blue); 
         }
         
         .success svg path {
-            fill: #2ecc71;
+            fill: var(--color-accent-blue);
         }
 
         .abi-versions {
@@ -274,10 +337,10 @@
         }
 
         .abi-item {
-            background: rgba(248, 249, 250, 0.1);
-            border: 2px solid rgba(233, 236, 239, 0.1);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            background: transparent; 
+            border: 2px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 10px;
             padding: 1rem;
             transition: all 0.3s ease;
@@ -285,13 +348,13 @@
         }
 
         .abi-item:hover {
-            border-color: #bdc3c7;
+            border-color: var(--color-accent-blue); 
             transform: translateX(5px);
         }
 
         .abi-item.selected {
-            border-color: #2ecc71;
-            background: rgba(213, 244, 230, 0.1);
+            border-color: var(--color-accent-blue);
+            background: rgba(96, 165, 250, 0.1); 
         }
 
         .abi-header {
@@ -304,29 +367,24 @@
         .abi-version {
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-weight: 600;
-            color: #ecf0f1;
+            color: var(--color-text-light);
         }
 
         .abi-meta {
             font-size: 0.8rem;
-            color: #bdc3c7;
+            color: var(--color-text-secondary);
         }
-
-        .abi-url {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.8rem;
-            word-break: break-all;
-        }
-
+        
         .loading {
             text-align: center;
             padding: 2rem;
-            color: #bdc3c7;
+            color: var(--color-text-secondary);
         }
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #bdc3c7;
+            /* 使用蓝色 accent */
+            border-top: 3px solid var(--color-accent-blue); 
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -370,29 +428,30 @@
 
         .download-btn {
             display: inline-block;
-            background-color: #2ecc71;
-            color: white;
+            background-color: var(--color-accent-blue); 
+            color: var(--color-base-dark); 
             padding: 12px 24px;
             border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             text-align: center;
             margin-top: 1rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+            transition: transform 0.2s ease;
         }
 
         .download-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4);
+            filter: brightness(1.1);
         }
 
         .thanks {
             font-size: 1.1rem;
+            color: var(--color-text-light);
         }
     </style>
 </head>
 <body>
+
     <div class="header">
         <div class="container">
             <h1>🚀 OpenWrt H68k Kmods Repository</h1>
@@ -434,7 +493,7 @@
                         使用说明
                     </h2>
                     <p>将以下命令添加到 <code>/etc/opkg/distfeeds.conf</code> 中：</p>
-                    <p style="margin-bottom: 1rem; color: #bdc3c7; font-size: 0.9rem;">为了提高访问速度，下面的链接使用了国内可用的 GitHub 镜像地址。</p>
+                    <p style="margin-bottom: 1rem; color: var(--color-text-secondary); font-size: 0.9rem;">为了提高访问速度，下面的链接使用了国内可用的 GitHub 镜像地址。</p>
                     <div id="selectedConfig" class="code-block">
                         <button class="copy-btn" onclick="copyToClipboard(this)">复制</button>
                         <span id="configText">正在获取配置...</span>
@@ -471,7 +530,7 @@
                         </li>
                         <li>
                             <span>基于版本</span>
-                            <span class="tag">ImmortalWrt Stable Release</span>
+                            <span class="tag">ImmortalWrt v24.10.2</span>
                         </li>
                     </ul>
                     <p style="margin-top: 1rem;">
@@ -502,7 +561,6 @@
                         </li>
                     </ul>
                     <div style="text-align: center; padding-top: 1rem;">
-                        <!-- Link to the GitHub Releases page. Changed from direct download to navigation. -->
                         <a href="https://github.com/leesonaa/h68k-build/releases" id="downloadFirmwareBtn" class="download-btn" target="_blank">下载最新固件</a>
                     </div>
                 </div>
@@ -526,10 +584,191 @@
         const baseUrl = 'https://leesonaa.github.io/h68k-build';
         const kmodsPath = '/targets/rockchip/armv8/kmods/';
         const versionsJsonUrl = `${baseUrl}${kmodsPath}versions.json`;
+        
+        // 自动更新定时器
+        let realtimeInterval = null;
+
+        // ====================================================================
+        // 【macOS 14 日光渐变效果】- 精确模拟真实的日光变化
+        // ====================================================================
+        
+        /**
+         * 获取精确的颜色插值
+         * @param {string} color1 - 起始颜色 (hex)
+         * @param {string} color2 - 结束颜色 (hex)
+         * @param {number} factor - 插值因子 (0-1)
+         */
+        function interpolateColor(color1, color2, factor) {
+            const hex1 = color1.replace('#', '');
+            const hex2 = color2.replace('#', '');
+            
+            const r1 = parseInt(hex1.substr(0, 2), 16);
+            const g1 = parseInt(hex1.substr(2, 2), 16);
+            const b1 = parseInt(hex1.substr(4, 2), 16);
+            
+            const r2 = parseInt(hex2.substr(0, 2), 16);
+            const g2 = parseInt(hex2.substr(2, 2), 16);
+            const b2 = parseInt(hex2.substr(4, 2), 16);
+            
+            const r = Math.round(r1 + (r2 - r1) * factor);
+            const g = Math.round(g1 + (g2 - g1) * factor);
+            const b = Math.round(b1 + (b2 - b1) * factor);
+            
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        /**
+         * 根据时间获取渐变色彩 - 模拟 macOS 14 Sonoma 日光壁纸效果
+         * @param {number} totalMinutes - 一天中的总分钟数 (0-1439)
+         */
+        function getDaylightColors(totalMinutes) {
+            const hour = Math.floor(totalMinutes / 60);
+            const minute = totalMinutes % 60;
+            const timeProgress = totalMinutes / 1440; // 0-1 的时间进度
+            
+            // 定义关键时间点的颜色 (底部到顶部的渐变)
+            // 优化：确保相邻颜色更平滑过渡，减少跳跃感
+            const colorStops = [
+                // 深夜 (0:00 - 4:59) - 深邃蓝紫
+                { time: 0, bottom: '#1a1b3a', top: '#0d1b2a' },      
+                { time: 300, bottom: '#1c1d3c', top: '#0f1d2c' },    // 微调变化
+                
+                // 黎明前 (5:00 - 5:59) - 渐进变亮
+                { time: 300, bottom: '#1e1f3e', top: '#111f2e' },    
+                { time: 360, bottom: '#252650', top: '#182240' },    // 缓慢变紫
+                
+                // 日出 (6:00 - 7:59) - 温和的暖色过渡
+                { time: 360, bottom: '#3a2d50', top: '#252550' },    // 深紫过渡
+                { time: 420, bottom: '#5a3d60', top: '#353560' },    // 中间过渡点
+                { time: 480, bottom: '#7a4d70', top: '#454570' },    // 暖紫色
+                
+                // 上午 (8:00 - 11:59) - 逐渐转向蓝色
+                { time: 480, bottom: '#8a5d80', top: '#555580' },    
+                { time: 600, bottom: '#7a6d90', top: '#4a5590' },    // 中间过渡
+                { time: 720, bottom: '#6a7da0', top: '#3f65a0' },    // 蓝灰色
+                
+                // 正午 (12:00 - 15:59) - 明亮但平滑
+                { time: 720, bottom: '#7a8db0', top: '#4f75b0' },    
+                { time: 840, bottom: '#8a9dc0', top: '#5f85c0' },    // 中间过渡
+                { time: 960, bottom: '#9aadd0', top: '#6f95d0' },    // 最亮点
+                
+                // 下午 (16:00 - 17:59) - 蓝色到暖色过渡
+                { time: 960, bottom: '#7a8db0', top: '#5f75c0' },    // 蓝色调
+                { time: 1020, bottom: '#8a7da0', top: '#6f65b0' },   // 开始暖化
+                { time: 1080, bottom: '#9a6d90', top: '#7f55a0' },   // 暖紫调
+                
+                // 黄昏 (18:00 - 19:59) - 参考 Sonoma 真实色彩：底部橙色，顶部紫蓝
+                { time: 1080, bottom: '#ff9a56', top: '#8b5a9a' },   // 橙色底，紫蓝顶
+                { time: 1140, bottom: '#ff8a46', top: '#7b4a8a' },   // 深橙底，深紫顶
+                { time: 1200, bottom: '#ff7a36', top: '#6b3a7a' },   // 橙红底，深紫顶
+                
+                // 日落 (20:00 - 21:59) - 逐渐变暗，保持橙紫对比
+                { time: 1200, bottom: '#e66a26', top: '#5b2a6a' },   // 暗橙底，深紫顶
+                { time: 1260, bottom: '#cc5a16', top: '#4b1a5a' },   // 继续变暗
+                { time: 1320, bottom: '#b24a06', top: '#3b0a4a' },   // 深暗橙紫
+                
+                // 夜晚 (22:00 - 23:59) - 逐渐变暗回到深夜
+                { time: 1320, bottom: '#5a2d30', top: '#4f1530' },   // 开始变暗
+                { time: 1380, bottom: '#3a1d25', top: '#2f0d20' },   // 继续变暗
+                { time: 1440, bottom: '#1a1b3a', top: '#0d1b2a' }    // 回到深夜起点
+            ];
+            
+            // 找到当前时间所在的区间
+            let currentStop = colorStops[0];
+            let nextStop = colorStops[1];
+            
+            for (let i = 0; i < colorStops.length - 1; i++) {
+                if (totalMinutes >= colorStops[i].time && totalMinutes <= colorStops[i + 1].time) {
+                    currentStop = colorStops[i];
+                    nextStop = colorStops[i + 1];
+                    break;
+                }
+            }
+            
+            // 计算在当前区间内的进度
+            const segmentProgress = (totalMinutes - currentStop.time) / (nextStop.time - currentStop.time);
+            
+            // 使用缓动函数让过渡更自然
+            const easedProgress = segmentProgress < 0.5 
+                ? 2 * segmentProgress * segmentProgress 
+                : 1 - Math.pow(-2 * segmentProgress + 2, 2) / 2;
+            
+            // 插值计算当前颜色
+            const bottomColor = interpolateColor(currentStop.bottom, nextStop.bottom, easedProgress);
+            const topColor = interpolateColor(currentStop.top, nextStop.top, easedProgress);
+            
+            return { bottom: bottomColor, top: topColor };
+        }
+
+        /**
+         * 设置动态背景 - 简化版本
+         * @param {number|null} manualHour - 手动设置的小时 (0-23)
+         * @param {number} manualMinute - 手动设置的分钟 (0-59)
+         */
+        function setDynamicBackground(manualHour = null, manualMinute = 0) {
+            const date = new Date();
+            const hour = manualHour === null ? date.getHours() : manualHour;
+            const minute = manualHour === null ? date.getMinutes() : manualMinute;
+            
+            const totalMinutes = hour * 60 + minute;
+            const colors = getDaylightColors(totalMinutes);
+            
+            const root = document.documentElement.style;
+            
+            // 只更新背景 CSS 变量
+            root.setProperty('--color-bg-start', colors.bottom);
+            root.setProperty('--color-bg-end', colors.top);
+            
+
+        }
+        
+
+        
+        // ====================================================================
+        // 【核心功能逻辑】
+        // ====================================================================
+        
+        // Copy to clipboard function
+        function copyToClipboard(button) {
+            const codeBlock = button.parentElement;
+            const text = codeBlock.textContent.replace('复制', '').trim();
+            
+            // 使用 execCommand('copy') 作为备用
+            try {
+                navigator.clipboard.writeText(text).then(() => {
+                    updateButtonFeedback(button, '已复制!');
+                }).catch(() => {
+                    fallbackCopy(text, button);
+                });
+            } catch (err) {
+                fallbackCopy(text, button);
+            }
+        }
+        
+        function fallbackCopy(text, button) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            updateButtonFeedback(button, '已复制!');
+        }
+
+        function updateButtonFeedback(button, message) {
+            const originalText = button.textContent;
+            button.textContent = message;
+            button.style.background = 'var(--color-accent-blue)';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = 'rgba(255, 255, 255, 0.2)'; 
+            }, 2000);
+        }
 
         // Function to select a version and update the UI
-        function selectVersion(version, url) {
-            selectedVersion = { version, url };
+        function selectVersion(version) {
+            selectedVersion = { version };
             
             document.querySelectorAll('.abi-item').forEach(item => {
                 item.classList.remove('selected');
@@ -538,37 +777,10 @@
                 }
             });
 
-            // 使用加速镜像地址 edgeone.gh-proxy.com，以提高国内访问速度
+            // 使用加速镜像地址 edgeone.gh-proxy.com
             const opkgUrl = `https://edgeone.gh-proxy.com/https://raw.githubusercontent.com/leesonaa/h68k-build/refs/heads/gh-pages/targets/rockchip/armv8/kmods/${version}`;
             const configText = `src/gz kmods_rockchip_armv8 ${opkgUrl}`;
             document.getElementById('configText').textContent = configText;
-        }
-
-        // Copy to clipboard function
-        function copyToClipboard(button) {
-            const codeBlock = button.parentElement;
-            const text = codeBlock.textContent.replace('复制', '').trim();
-            
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = button.textContent;
-                button.textContent = '已复制!';
-                button.style.background = '#2ecc71';
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '#bdc3c7';
-                }, 2000);
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                
-                button.textContent = '已复制!';
-                setTimeout(() => button.textContent = '复制', 2000);
-            });
         }
 
         // Function to render the ABI versions from the fetched data
@@ -590,18 +802,15 @@
                 return;
             }
 
-            // Automatically select the latest version
             const latestVersion = versions[0];
-            selectVersion(latestVersion.version, `https://edgeone.gh-proxy.com/https://raw.githubusercontent.com/leesonaa/h68k-build/refs/heads/gh-pages/targets/rockchip/armv8/kmods/${latestVersion.version}`);
+            selectVersion(latestVersion.version);
 
-            // Render the list of versions
             const versionsHtml = versions.map((versionInfo, index) => {
                 const kernelVersion = versionInfo.version.split('-')[0];
                 const abiHash = versionInfo.version.split('-')[1];
                 const isLatest = index === 0;
                 
-                // If there's only one version, make it non-clickable
-                const onclickAttr = versions.length > 1 ? `onclick="selectVersion('${versionInfo.version}', 'https://edgeone.gh-proxy.com/https/raw.githubusercontent.com/leesonaa/h68k-build/refs/heads/gh-pages/targets/rockchip/armv8/kmods/${versionInfo.version}')"` : '';
+                const onclickAttr = versions.length > 1 ? `onclick="selectVersion('${versionInfo.version}')"` : '';
 
                 return `
                     <div class="abi-item ${isLatest ? 'selected' : ''}" ${onclickAttr} data-version="${versionInfo.version}">
@@ -629,8 +838,26 @@
             `;
             
             try {
-                const response = await fetch(versionsJsonUrl);
-                if (!response.ok) {
+                // Fetching logic with exponential backoff
+                const maxRetries = 5;
+                let response = null;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(versionsJsonUrl);
+                        if (response.ok) break; 
+                    } catch (e) {
+                        // Ignore fetch error for retry logic
+                    }
+
+                    if (i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        throw new Error('Failed to fetch versions.json after multiple retries.');
+                    }
+                }
+
+                if (!response || !response.ok) {
                     throw new Error('Failed to fetch versions.json');
                 }
                 const versionsData = await response.json();
@@ -656,11 +883,22 @@
             }
         }
 
+        // 页面初始化
         document.addEventListener('DOMContentLoaded', () => {
             const cards = document.querySelectorAll('.card');
             cards.forEach((card, index) => {
                 card.style.animationDelay = `${index * 0.1}s`;
             });
+            
+            // 1. 初始化动态背景（使用真实时间）
+            setDynamicBackground(null);
+
+            // 2. 设置实时时间定时器 - 每分钟更新
+            realtimeInterval = setInterval(() => {
+                setDynamicBackground(null);
+            }, 60 * 1000); // 每分钟检查一次
+
+            // 3. 加载内核版本数据
             fetchAndRenderABIVersions();
         });
     </script>
