@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,10 +11,10 @@
             --color-bg-start: #27293a; 
             --color-bg-end: #503544; 
 
-            /* 简化的固定UI颜色 */
+            /* 简化的固定UI颜色 - 全部改为白色主题 */
             --color-text-light: #ffffff;  
             --color-text-secondary: rgba(255, 255, 255, 0.8); 
-            --color-accent-blue: #60a5fa; 
+            --color-accent-white: #ffffff; 
             --color-alert-red: #ff708a; 
             --color-warning-orange: #f4d03f; 
             --color-base-dark: #1a1a1a; 
@@ -43,7 +43,7 @@
             overflow-x: hidden; 
         }
 
-        /* 【静态高斯模糊光斑 - 蓝色光斑，与深色背景形成柔和对比】 */
+        /* 【静态高斯模糊光斑 - 白色光斑，与深色背景形成柔和对比】 */
         body::before {
             content: '';
             position: fixed;
@@ -52,9 +52,9 @@
             width: 80vw;
             height: 80vh;
             transform: translate(-50%, -50%);
-            /* 居中一个柔和的蓝色径向渐变光斑 */
+            /* 居中一个柔和的白色径向渐变光斑 */
             background: radial-gradient(circle at center, 
-                rgba(96, 165, 250, 0.25), /* 使用新的 accent 颜色 */
+                rgba(255, 255, 255, 0.15), /* 使用白色 accent 颜色 */
                 transparent 60% 
             );
             filter: blur(180px); 
@@ -168,7 +168,7 @@
                 45deg,
                 transparent,
                 transparent 40%,
-                rgba(96, 165, 250, 0.6) 50%,
+                rgba(255, 255, 255, 0.4) 50%,
                 transparent 60%,
                 transparent
             );
@@ -186,9 +186,9 @@
         /* 悬停其他效果 */
         .card:hover {
             transform: translateY(-5px); 
-            border-color: rgba(96, 165, 250, 0.4);
+            border-color: rgba(255, 255, 255, 0.4);
             box-shadow: 
-                0 0 20px rgba(96, 165, 250, 0.3), 
+                0 0 20px rgba(255, 255, 255, 0.3), 
                 0 10px 30px rgba(0, 0, 0, 0.2); 
         }
         
@@ -197,8 +197,6 @@
             position: relative;
             z-index: 2;
         }
-
-
 
         h2 {
             color: var(--color-text-light);
@@ -213,7 +211,7 @@
         .icon {
             width: 24px;
             height: 24px;
-            fill: var(--color-accent-blue); 
+            fill: var(--color-accent-white); 
             filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
         }
 
@@ -227,7 +225,7 @@
             line-height: 1.5;
             overflow-x: auto;
             margin: 1rem 0;
-            border-left: 4px solid var(--color-accent-blue); 
+            border-left: 4px solid var(--color-accent-white); 
             position: relative;
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
@@ -254,7 +252,7 @@
 
         .copy-btn:hover {
             opacity: 1;
-            background: var(--color-accent-blue);
+            background: var(--color-accent-white);
             color: var(--color-base-dark);
         }
 
@@ -283,15 +281,15 @@
         }
 
         .tag.latest {
-            background: var(--color-accent-blue); 
-            color: var(--color-base-dark);
+            background: #22c55e; 
+            color: #ffffff;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
         .warning {
@@ -317,16 +315,16 @@
         }
 
         .success {
-            background: rgba(96, 165, 250, 0.15); 
-            color: var(--color-accent-blue); 
+            background: rgba(255, 255, 255, 0.1); 
+            color: var(--color-accent-white); 
             padding: 1rem;
             border-radius: 8px;
             margin: 1rem 0;
-            border-left: 4px solid var(--color-accent-blue); 
+            border-left: 4px solid var(--color-accent-white); 
         }
         
         .success svg path {
-            fill: var(--color-accent-blue);
+            fill: var(--color-accent-white);
         }
 
         .abi-versions {
@@ -338,7 +336,7 @@
 
         .abi-item {
             background: transparent; 
-            border: 2px solid rgba(255, 255, 255, 0.1); 
+            border: 2px solid #22c55e; 
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 10px;
@@ -348,13 +346,13 @@
         }
 
         .abi-item:hover {
-            border-color: var(--color-accent-blue); 
+            border-color: #22c55e; 
             transform: translateX(5px);
         }
 
         .abi-item.selected {
-            border-color: var(--color-accent-blue);
-            background: rgba(96, 165, 250, 0.1); 
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1); 
         }
 
         .abi-header {
@@ -383,8 +381,8 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            /* 使用蓝色 accent */
-            border-top: 3px solid var(--color-accent-blue); 
+            /* 使用白色 accent */
+            border-top: 3px solid var(--color-accent-white); 
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -428,8 +426,8 @@
 
         .download-btn {
             display: inline-block;
-            background-color: var(--color-accent-blue); 
-            color: var(--color-base-dark); 
+            background-color: #22c55e; 
+            color: #ffffff; 
             padding: 12px 24px;
             border-radius: 12px;
             text-decoration: none;
@@ -451,6 +449,8 @@
     </style>
 </head>
 <body>
+
+
 
     <div class="header">
         <div class="container">
@@ -618,90 +618,106 @@
         }
 
         /**
-         * 根据时间获取渐变色彩 - 模拟 macOS 14 Sonoma 日光壁纸效果
+         * 根据时间获取渐变色彩和位置 - 支持太阳光芒区域变化
          * @param {number} totalMinutes - 一天中的总分钟数 (0-1439)
          */
         function getDaylightColors(totalMinutes) {
             const hour = Math.floor(totalMinutes / 60);
-            const minute = totalMinutes % 60;
-            const timeProgress = totalMinutes / 1440; // 0-1 的时间进度
             
-            // 定义关键时间点的颜色 (底部到顶部的渐变)
-            // 优化：确保相邻颜色更平滑过渡，减少跳跃感
-            const colorStops = [
-                // 深夜 (0:00 - 4:59) - 深邃蓝紫
-                { time: 0, bottom: '#1a1b3a', top: '#0d1b2a' },      
-                { time: 300, bottom: '#1c1d3c', top: '#0f1d2c' },    // 微调变化
-                
-                // 黎明前 (5:00 - 5:59) - 渐进变亮
-                { time: 300, bottom: '#1e1f3e', top: '#111f2e' },    
-                { time: 360, bottom: '#252650', top: '#182240' },    // 缓慢变紫
-                
-                // 日出 (6:00 - 7:59) - 温和的暖色过渡
-                { time: 360, bottom: '#3a2d50', top: '#252550' },    // 深紫过渡
-                { time: 420, bottom: '#5a3d60', top: '#353560' },    // 中间过渡点
-                { time: 480, bottom: '#7a4d70', top: '#454570' },    // 暖紫色
-                
-                // 上午 (8:00 - 11:59) - 逐渐转向蓝色
-                { time: 480, bottom: '#8a5d80', top: '#555580' },    
-                { time: 600, bottom: '#7a6d90', top: '#4a5590' },    // 中间过渡
-                { time: 720, bottom: '#6a7da0', top: '#3f65a0' },    // 蓝灰色
-                
-                // 正午 (12:00 - 15:59) - 明亮但平滑
-                { time: 720, bottom: '#7a8db0', top: '#4f75b0' },    
-                { time: 840, bottom: '#8a9dc0', top: '#5f85c0' },    // 中间过渡
-                { time: 960, bottom: '#9aadd0', top: '#6f95d0' },    // 最亮点
-                
-                // 下午 (16:00 - 17:59) - 蓝色到暖色过渡
-                { time: 960, bottom: '#7a8db0', top: '#5f75c0' },    // 蓝色调
-                { time: 1020, bottom: '#8a7da0', top: '#6f65b0' },   // 开始暖化
-                { time: 1080, bottom: '#9a6d90', top: '#7f55a0' },   // 暖紫调
-                
-                // 黄昏 (18:00 - 19:59) - 参考 Sonoma 真实色彩：底部橙色，顶部紫蓝
-                { time: 1080, bottom: '#ff9a56', top: '#8b5a9a' },   // 橙色底，紫蓝顶
-                { time: 1140, bottom: '#ff8a46', top: '#7b4a8a' },   // 深橙底，深紫顶
-                { time: 1200, bottom: '#ff7a36', top: '#6b3a7a' },   // 橙红底，深紫顶
-                
-                // 日落 (20:00 - 21:59) - 逐渐变暗，保持橙紫对比
-                { time: 1200, bottom: '#e66a26', top: '#5b2a6a' },   // 暗橙底，深紫顶
-                { time: 1260, bottom: '#cc5a16', top: '#4b1a5a' },   // 继续变暗
-                { time: 1320, bottom: '#b24a06', top: '#3b0a4a' },   // 深暗橙紫
-                
-                // 夜晚 (22:00 - 23:59) - 逐渐变暗回到深夜
-                { time: 1320, bottom: '#5a2d30', top: '#4f1530' },   // 开始变暗
-                { time: 1380, bottom: '#3a1d25', top: '#2f0d20' },   // 继续变暗
-                { time: 1440, bottom: '#1a1b3a', top: '#0d1b2a' }    // 回到深夜起点
-            ];
-            
-            // 找到当前时间所在的区间
-            let currentStop = colorStops[0];
-            let nextStop = colorStops[1];
-            
-            for (let i = 0; i < colorStops.length - 1; i++) {
-                if (totalMinutes >= colorStops[i].time && totalMinutes <= colorStops[i + 1].time) {
-                    currentStop = colorStops[i];
-                    nextStop = colorStops[i + 1];
-                    break;
-                }
+            // 深夜到黎明前 (0:00 - 4:59) - 纯色背景，无太阳
+            if (totalMinutes < 300) {
+                const nightProgress = totalMinutes / 300; // 0-1
+                const nightColor = interpolateColor('#0f172a', '#475569', nightProgress);
+                return { bottom: nightColor, top: nightColor };
             }
             
-            // 计算在当前区间内的进度
-            const segmentProgress = (totalMinutes - currentStop.time) / (nextStop.time - currentStop.time);
+            // 日出阶段 (5:00 - 18:59) - 发散式太阳光芒持续到19:00
+            else if (totalMinutes >= 300 && totalMinutes < 1140) {
+                const totalDuration = 1140 - 300; // 总持续时间：840分钟（14小时）
+                const sunriseProgress = (totalMinutes - 300) / totalDuration; // 0-1
+                
+                // 太阳光芒强度变化：保持较高强度
+                let sunIntensity;
+                if (sunriseProgress < 0.1) {
+                    // 前10%：快速出现 (5:00-6:24)
+                    const easeProgress = sunriseProgress / 0.1;
+                    sunIntensity = easeProgress * easeProgress * 0.8; // 快速到达0.8强度
+                } else if (sunriseProgress < 0.9) {
+                    // 中间80%：保持高强度 (6:24-17:36)
+                    sunIntensity = 0.8;
+                } else {
+                    // 后10%：缓慢消失 (17:36-19:00)
+                    const fadeProgress = (sunriseProgress - 0.9) / 0.1;
+                    sunIntensity = 0.8 * (1 - fadeProgress * fadeProgress);
+                }
+                
+                // 太阳核心颜色 - 保持温暖的橙黄色调
+                let sunColor;
+                if (sunriseProgress < 0.3) {
+                    sunColor = 'rgba(251, 146, 60, 0.9)'; // 橙色
+                } else if (sunriseProgress < 0.7) {
+                    sunColor = 'rgba(245, 158, 11, 0.9)'; // 琥珀色
+                } else {
+                    sunColor = 'rgba(253, 224, 71, 0.8)'; // 淡黄色
+                }
+                
+                // 天空颜色变化：深蓝 -> 蔚蓝
+                const skyColor = interpolateColor('#1e3a8a', '#60a5fa', Math.min(sunriseProgress * 2, 1));
+                
+                return {
+                    sunColor: sunColor,
+                    skyColor: skyColor,
+                    sunIntensity: Math.max(0, Math.min(1, sunIntensity))
+                };
+            }
             
-            // 使用缓动函数让过渡更自然
-            const easedProgress = segmentProgress < 0.5 
-                ? 2 * segmentProgress * segmentProgress 
-                : 1 - Math.pow(-2 * segmentProgress + 2, 2) / 2;
+            // 黄昏日落 (19:00 - 21:59) - 发散式日落效果
+            else if (totalMinutes >= 1140 && totalMinutes < 1320) {
+                const sunsetProgress = (totalMinutes - 1140) / 180; // 0-1 (180分钟)
+                
+                // 日落光芒强度变化
+                let sunIntensity;
+                if (sunsetProgress < 0.3) {
+                    // 前30%：渐进出现
+                    sunIntensity = sunsetProgress / 0.3 * 0.8;
+                } else if (sunsetProgress < 0.7) {
+                    // 中间40%：保持强烈
+                    sunIntensity = 0.8;
+                } else {
+                    // 后30%：快速消失
+                    const fadeProgress = (sunsetProgress - 0.7) / 0.3;
+                    sunIntensity = 0.8 * (1 - fadeProgress * fadeProgress);
+                }
+                
+                // 日落颜色 - 更深沉的暖色调
+                let sunColor;
+                if (sunsetProgress < 0.3) {
+                    sunColor = 'rgba(251, 146, 60, 0.9)'; // 橙色
+                } else if (sunsetProgress < 0.6) {
+                    sunColor = 'rgba(234, 88, 12, 0.9)'; // 深橙色
+                } else {
+                    sunColor = 'rgba(220, 38, 38, 0.8)'; // 红色
+                }
+                
+                const skyColor = interpolateColor('#60a5fa', '#1e293b', sunsetProgress);
+                
+                return {
+                    sunColor: sunColor,
+                    skyColor: skyColor,
+                    sunIntensity: Math.max(0, sunIntensity)
+                };
+            }
             
-            // 插值计算当前颜色
-            const bottomColor = interpolateColor(currentStop.bottom, nextStop.bottom, easedProgress);
-            const topColor = interpolateColor(currentStop.top, nextStop.top, easedProgress);
-            
-            return { bottom: bottomColor, top: topColor };
+            // 夜晚 (22:00 - 23:59) - 回到深夜
+            else {
+                const nightProgress = (totalMinutes - 1320) / 120; // 0-1 (120分钟)
+                const nightColor = interpolateColor('#475569', '#0f172a', nightProgress);
+                return { bottom: nightColor, top: nightColor };
+            }
         }
 
         /**
-         * 设置动态背景 - 简化版本
+         * 设置动态背景 - 支持发散式日出效果
          * @param {number|null} manualHour - 手动设置的小时 (0-23)
          * @param {number} manualMinute - 手动设置的分钟 (0-59)
          */
@@ -711,18 +727,31 @@
             const minute = manualHour === null ? date.getMinutes() : manualMinute;
             
             const totalMinutes = hour * 60 + minute;
-            const colors = getDaylightColors(totalMinutes);
+            const result = getDaylightColors(totalMinutes);
             
-            const root = document.documentElement.style;
-            
-            // 只更新背景 CSS 变量
-            root.setProperty('--color-bg-start', colors.bottom);
-            root.setProperty('--color-bg-end', colors.top);
-            
-
+            // 创建动态背景
+            if (result.sunIntensity !== undefined) {
+                // 日出/日落时：从整个底部边缘（包括角落）向上发散
+                const gradientCSS = `
+                    radial-gradient(ellipse 400% 120% at center bottom, 
+                        ${result.sunColor} 0%, 
+                        rgba(255, 165, 0, ${result.sunIntensity * 0.8}) 5%, 
+                        rgba(255, 200, 100, ${result.sunIntensity * 0.6}) 12%, 
+                        rgba(255, 220, 150, ${result.sunIntensity * 0.4}) 22%, 
+                        rgba(255, 235, 200, ${result.sunIntensity * 0.25}) 35%, 
+                        rgba(255, 245, 220, ${result.sunIntensity * 0.15}) 50%, 
+                        rgba(255, 250, 235, ${result.sunIntensity * 0.08}) 65%, 
+                        transparent 80%), 
+                    linear-gradient(to top, 
+                        ${result.skyColor} 0%, 
+                        ${result.skyColor} 100%)`;
+                document.body.style.background = gradientCSS;
+            } else {
+                // 其他时间：简单渐变
+                const gradientCSS = `linear-gradient(to top, ${result.bottom} 0%, ${result.top} 100%)`;
+                document.body.style.background = gradientCSS;
+            }
         }
-        
-
         
         // ====================================================================
         // 【核心功能逻辑】
@@ -758,11 +787,13 @@
         function updateButtonFeedback(button, message) {
             const originalText = button.textContent;
             button.textContent = message;
-            button.style.background = 'var(--color-accent-blue)';
+            button.style.background = 'var(--color-accent-white)';
+            button.style.color = 'var(--color-base-dark)';
             
             setTimeout(() => {
                 button.textContent = originalText;
                 button.style.background = 'rgba(255, 255, 255, 0.2)'; 
+                button.style.color = 'white';
             }, 2000);
         }
 
@@ -883,6 +914,8 @@
             }
         }
 
+
+        
         // 页面初始化
         document.addEventListener('DOMContentLoaded', () => {
             const cards = document.querySelectorAll('.card');
