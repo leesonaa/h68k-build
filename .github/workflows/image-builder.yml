@@ -7,6 +7,10 @@ on:
         description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
         default: v24.10.2
+      toolchain_repo:
+        description: "输入 toolchain 下载地址"
+        required: true
+        default: "https://downloads.immortalwrt.org/releases/24.10.3/targets/rockchip/armv8/immortalwrt-toolchain-24.10.3-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -14,6 +18,7 @@ env:
   DIY_SHELL: diy.sh
   TZ: Asia/Shanghai
   SOURCE_REPO: ${{ github.event.inputs.source_repo }}
+  TOOLCHAIN_REPO: ${{ github.event.inputs.toolchain_repo }}
 
 jobs:
   build-firmware:
@@ -76,20 +81,38 @@ jobs:
           chmod +x $DIY_SHELL
           cd /mnt/openwrt
           $GITHUB_WORKSPACE/$DIY_SHELL
+
+      - name: Download toolchain
+        run: |
+          echo "Downloading toolchain from $TOOLCHAIN_REPO"
+          TOOLCHAIN_FILE="${TOOLCHAIN_REPO##*/}"  # 提取文件名
+          wget -O $TOOLCHAIN_FILE $TOOLCHAIN_REPO
+
+          # 提取 GCC 版本
+          GCC_VER=$(echo $TOOLCHAIN_FILE | grep -oP 'gcc-\K[0-9]+\.[0-9]+\.[0-9]+')
+          echo "Detected GCC version: $GCC_VER"
+
+          # 解压到固定目录
+          TOOLCHAIN_DIR="$HOME/toolchain-aarch64"
+          mkdir -p $TOOLCHAIN_DIR
+          tar -I zstd -xf $TOOLCHAIN_FILE -C $TOOLCHAIN_DIR --strip-components=1
+
+          # 暴露环境变量
+          echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
+          echo "GCC_VER=$GCC_VER" >> $GITHUB_ENV
+
           
       - name: Make menuconfig
         run: |
             cd /mnt/openwrt
+            echo "CONFIG_DEVEL=y" >> .config
+            echo "CONFIG_EXTERNAL_TOOLCHAIN=y" >> .config
+            echo "CONFIG_TARGET_NAME=\"aarch64-openwrt-linux\"" >> .config
+            echo "CONFIG_TOOLCHAIN_PREFIX=\"aarch64-openwrt-linux-musl-\"" >> .config
+            echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
+            echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
             make defconfig
-          
-      - name: Check and Push config
-        run: |
-          [ -e $CONFIG_FILE ] && cp /mnt/openwrt/.config $CONFIG_FILE
-          if [ -n "$(git status -s | grep $CONFIG_FILE)" ]; then
-            git add $CONFIG_FILE
-            git commit -m "update config"
-            git push -f
-          fi
+            cat .config
           
       - name: Compile the firmware
         run: |
