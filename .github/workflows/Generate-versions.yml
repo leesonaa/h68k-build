@@ -1,10 +1,10 @@
 name: Generate versions.json on gh-pages
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - gh-pages # 当向 gh-pages 分支推送时触发
+  workflow_run:
+    workflows: ["Build Openwrt Image"]
+    types:
+      - completed 
 
 jobs:
   generate-json:
