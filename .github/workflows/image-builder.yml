@@ -95,7 +95,7 @@ jobs:
           # 解压到固定目录
           TOOLCHAIN_DIR="$HOME/toolchain-aarch64"
           mkdir -p $TOOLCHAIN_DIR
-          tar -I zstd -xf $TOOLCHAIN_FILE -C $TOOLCHAIN_DIR --strip-components=1
+          tar -I zstd -xf $TOOLCHAIN_FILE -C $TOOLCHAIN_DIR --strip-components=2
 
           # 暴露环境变量
           echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
