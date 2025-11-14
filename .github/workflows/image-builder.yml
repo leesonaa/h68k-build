@@ -67,7 +67,6 @@ jobs:
           git checkout $SOURCE_REPO
           cp /home/runner/work/h68k-build/h68k-build/patch/add.sh .
           bash add.sh
-          cp /home/runner/work/h68k-build/h68k-build/patch/001-add-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
           
       - name: Update feeds
         run: cd /mnt/openwrt && ./scripts/feeds update -a
@@ -198,7 +197,6 @@ jobs:
           git clean -fdq
           cp /home/runner/work/h68k-build/h68k-build/patch/add2022.sh .
           bash add2022.sh
-          cp /home/runner/work/h68k-build/h68k-build/patch/001-add-2022-opc-h68k-support.patch package/boot/uboot-rockchip/patches/
           $GITHUB_WORKSPACE/$DIY_SHELL
           make defconfig
           make -j$(nproc) V=s
