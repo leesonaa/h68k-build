@@ -6,12 +6,14 @@ on:
       source_repo:
         description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
-        default: v24.10.2
+        default: v24.10.4
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
-        default: "https://downloads.immortalwrt.org/releases/24.10.3/targets/rockchip/armv8/immortalwrt-toolchain-24.10.3-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-
+        default: "https://downloads.immortalwrt.org/releases/24.10.4/targets/rockchip/armv8/immortalwrt-toolchain-24.10.4-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+      defconfig:
+        description: "输入默认config 下载地址"
+        default: "https://downloads.immortalwrt.org/releases/24.10.4/targets/rockchip/armv8/config.buildinfo"
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: default.config
@@ -19,6 +21,7 @@ env:
   TZ: Asia/Shanghai
   SOURCE_REPO: ${{ github.event.inputs.source_repo }}
   TOOLCHAIN_REPO: ${{ github.event.inputs.toolchain_repo }}
+  DEFCONFIG: ${{ github.event.inputs.defconfig }}
 
 jobs:
   build-firmware:
@@ -90,13 +93,6 @@ jobs:
 
       - name: Install feeds
         run: cd /mnt/openwrt && ./scripts/feeds install -a
-        
-      - name: Load custom configuration
-        run: |
-          [ -e $CONFIG_FILE ] && cp $CONFIG_FILE /mnt/openwrt/.config
-          chmod +x $DIY_SHELL
-          cd /mnt/openwrt
-          $GITHUB_WORKSPACE/$DIY_SHELL
 
       - name: Download toolchain
         run: |
@@ -118,6 +114,8 @@ jobs:
       - name: Make menuconfig
         run: |
             cd /mnt/openwrt
+            wget $DEFCONFIG -O .config
+            echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_opc-h68k=y" >> .config
             echo "CONFIG_DEVEL=y" >> .config
             echo "CONFIG_EXTERNAL_TOOLCHAIN=y" >> .config
             echo "CONFIG_TARGET_NAME=\"aarch64-openwrt-linux\"" >> .config
@@ -140,54 +138,6 @@ jobs:
         if: (!cancelled())
         run: |
           duf
-          
-      - name: Get Kernel ABI and Version
-        id: kernel_info
-        run: |
-          if [ ! -f /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json ]; then
-            echo "::error::profiles.json not found."
-            exit 1
-          fi
-          
-          KERNEL_VERSION=$(jq -r '.linux_kernel.version' /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json)
-          VERMAGIC=$(jq -r '.linux_kernel.vermagic' /mnt/openwrt/bin/targets/rockchip/armv8/profiles.json)
-          
-          if [ -z "$KERNEL_VERSION" ] || [ "$KERNEL_VERSION" == "null" ]; then
-            echo "::error::Could not extract Kernel Version from profiles.json."
-            exit 1
-          fi
-          
-          if [ -z "$VERMAGIC" ] || [ "$VERMAGIC" == "null" ]; then
-            echo "::error::Could not extract vermagic from profiles.json."
-            exit 1
-          fi
-          
-          COMBINED_ABI="${KERNEL_VERSION}-${VERMAGIC}"
-          echo "kernel_abi=$COMBINED_ABI" >> $GITHUB_OUTPUT
-          echo "Detected Kernel ABI: $COMBINED_ABI"
-          
-      - name: Upload packages as an artifact
-        uses: actions/upload-artifact@v4
-        if: (!cancelled())
-        with:
-          name: packages-${{ matrix.device }}
-          path: /mnt/openwrt/bin/targets/rockchip/armv8/packages/*
-          retention-days: 1
-
-      - name: Save kernel ABI to file
-        id: save_abi
-        run: |
-          mkdir -p /tmp/abi-output
-          echo "${{ steps.kernel_info.outputs.kernel_abi }}" > /tmp/abi-output/kernel_abi.txt
-          cat /tmp/abi-output/kernel_abi.txt
-
-      - name: Upload kernel ABI as artifact (only h68k-new)
-        uses: actions/upload-artifact@v4
-        if: matrix.device == 'h68k-new'
-        with:
-          name: kernel-abi
-          path: /tmp/abi-output/kernel_abi.txt
-          retention-days: 1
 
       - name: Organize firmware files
         if: (!cancelled())
@@ -229,93 +179,3 @@ jobs:
             ### OpenWrt Source Code
             - ${{ env.REPO_URL }}
           files: ${{ env.firmware_dir }}/*
-  
-  deploy-packages:
-    name: Deploy packages to GitHub Pages
-    runs-on: ubuntu-22.04
-    needs: build-firmware
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Checkout gh-pages branch
-        run: |
-          git fetch origin gh-pages
-          git worktree add ./gh-pages origin/gh-pages || git worktree add --force ./gh-pages gh-pages
-
-      - name: Download kernel ABI artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kernel-abi
-          path: ./abi-info
-
-      - name: Read kernel ABI from file
-        run: |
-          KERNEL_ABI=$(cat ./abi-info/kernel_abi.txt)
-          echo "KERNEL_ABI=$KERNEL_ABI" >> $GITHUB_ENV
-          echo "Detected Kernel ABI: $KERNEL_ABI"
-
-      - name: Download all packages artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./all-packages
-
-      - name: Create directory structure and merge packages
-        run: |
-          if [ -z "$KERNEL_ABI" ] || [ "$KERNEL_ABI" == "null" ]; then
-            echo "::error::Kernel ABI variable is empty or 'null'. Cannot deploy packages."
-            exit 1
-          fi
-          echo "Deploying to ABI directory: $KERNEL_ABI"
-          
-          TARGET_DIR="./gh-pages/targets/rockchip/armv8/kmods/$KERNEL_ABI"
-          mkdir -p "$TARGET_DIR"
-          
-          # 合并所有设备的包到同一个 ABI 目录
-          find ./all-packages -type f \( -name "*.ipk" -o -name "Makefile.manifest" -o -name "Packages*" \) | while read file; do
-            cp "$file" "$TARGET_DIR/"
-          done
-          
-          echo "Merged packages from all devices to: $TARGET_DIR"
-          ls -la "$TARGET_DIR" || echo "Directory empty"
-
-      - name: Generate versions.json
-        run: |
-          TARGET_KMODS_DIR="./gh-pages/targets/rockchip/armv8/kmods"
-          if [ ! -d "$TARGET_KMODS_DIR" ]; then
-            echo "::warning::Deploy kmods directory not found, creating it..."
-            mkdir -p "$TARGET_KMODS_DIR"
-          fi
-
-          # 扫描所有 ABI 版本目录（增量保留）
-          find "$TARGET_KMODS_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-            | jq -R . | jq -s '[.[] | {version:.}]' \
-            > "$TARGET_KMODS_DIR/versions.json"
-
-          echo "Generated versions.json:"
-          cat "$TARGET_KMODS_DIR/versions.json"
-          
-          # 从主分支复制 index.html
-          git checkout main -- index.html 2>/dev/null || echo "index.html not in main branch"
-          [ -f index.html ] && mv index.html ./gh-pages/
-
-      - name: Commit and push to gh-pages
-        run: |
-          cd ./gh-pages
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git commit -m "Deploy packages - kernel_abi: ${{ env.KERNEL_ABI }}"
-          git push origin HEAD:gh-pages
-
-      - name: Clean up
-        run: |
-          rm -rf ./all-packages ./abi-info
-          git worktree remove ./gh-pages || true
