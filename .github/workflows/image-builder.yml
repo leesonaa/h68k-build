@@ -125,7 +125,7 @@ jobs:
             make defconfig
             cp $GITHUB_WORKSPACE/$DIY_SHELL .
             chmod +x diy.sh
-            bash diy.sh
+            ./diy.sh
             cat .config
           
       - name: Compile the firmware
