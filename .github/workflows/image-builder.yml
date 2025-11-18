@@ -123,6 +123,8 @@ jobs:
             echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
             echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
             make defconfig
+            chmod +x $DIY_SHELL
+            $GITHUB_WORKSPACE/$DIY_SHELL
             cat .config
           
       - name: Compile the firmware
