@@ -122,6 +122,16 @@ jobs:
             echo "CONFIG_TOOLCHAIN_PREFIX=\"aarch64-openwrt-linux-musl-\"" >> .config
             echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
             echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
+            echo "CONFIG_DEVEL=y" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
+            echo "CONFIG_KERNEL_CGROUPS=y" >> .config
+            echo "CONFIG_KERNEL_CGROUP_BPF=y" >> .config
+            echo "CONFIG_KERNEL_BPF_EVENTS=y" >> .config
+            echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> .config
+            echo "CONFIG_KERNEL_XDP_SOCKETS=y" >> .config
+            echo "CONFIG_PACKAGE_kmod-xdp-sockets-diag=y" >> .config
             make defconfig
             cp $GITHUB_WORKSPACE/$DIY_SHELL .
             chmod +x diy.sh
