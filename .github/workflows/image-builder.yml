@@ -122,6 +122,7 @@ jobs:
             echo "CONFIG_TOOLCHAIN_PREFIX=\"aarch64-openwrt-linux-musl-\"" >> .config
             echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
             echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
+            make defconfig
             echo "CONFIG_DEVEL=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
