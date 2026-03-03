@@ -6,14 +6,14 @@ on:
       source_repo:
         description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
-        default: v24.10.4
+        default: v24.10.5
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
-        default: "https://downloads.immortalwrt.org/releases/24.10.4/targets/rockchip/armv8/immortalwrt-toolchain-24.10.4-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+        default: "https://downloads.immortalwrt.org/releases/24.10.5/targets/rockchip/armv8/immortalwrt-toolchain-24.10.5-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
       defconfig:
         description: "输入默认config 下载地址"
-        default: "https://downloads.immortalwrt.org/releases/24.10.4/targets/rockchip/armv8/config.buildinfo"
+        default: "https://downloads.immortalwrt.org/releases/24.10.5/targets/rockchip/armv8/config.buildinfo"
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: default.config
@@ -45,13 +45,13 @@ jobs:
           repository: leesonaa/immortalwrt-h68k
           token: ${{ secrets.GH_TOKEN }}
           path: patch
-      
+
       - name: Init Env
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           sudo timedatectl set-timezone "$TZ"
-          
+
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -65,7 +65,7 @@ jobs:
           ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
           python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
           upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm jq
-          
+
       - name: Clone source code
         run: |
           duf
@@ -73,7 +73,7 @@ jobs:
           git clone $REPO_URL /mnt/openwrt
           cd /mnt/openwrt
           git checkout $SOURCE_REPO
-          
+
       - name: Prepare source for device - ${{ matrix.device }}
         run: |
           cd /mnt/openwrt
@@ -87,7 +87,7 @@ jobs:
             cp $GITHUB_WORKSPACE/patch/add_max.sh .
             bash add_max.sh
           fi
-          
+
       - name: Update feeds
         run: cd /mnt/openwrt && ./scripts/feeds update -a
 
@@ -110,7 +110,7 @@ jobs:
           echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
           echo "GCC_VER=$GCC_VER" >> $GITHUB_ENV
 
-          
+
       - name: Make menuconfig
         run: |
             cd /mnt/openwrt
@@ -136,7 +136,7 @@ jobs:
             chmod +x diy.sh
             ./diy.sh
             cat .config
-          
+
       - name: Compile the firmware
         run: |
           cd /mnt/openwrt
@@ -145,7 +145,7 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) V=s
           echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
-          
+
       - name: Check space usage
         if: (!cancelled())
         run: |
@@ -157,7 +157,7 @@ jobs:
           cd /mnt/openwrt/bin/targets/*/*
           rm -rf packages *.buildinfo *.manifest *.zst
           echo "firmware_dir=$PWD" >> "$GITHUB_ENV"
-          
+
       - name: Set release tag suffix
         run: |
           if [ "${{ matrix.device }}" == "h68k-new" ]; then
@@ -167,7 +167,7 @@ jobs:
           elif [ "${{ matrix.device }}" == "h68k-max" ]; then
             echo "tag_suffix=H68k-Max" >> "$GITHUB_ENV"
           fi
-          
+
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v2
         if: (!cancelled())
@@ -185,7 +185,7 @@ jobs:
             - Default WIFI Name: immrotalwrt
             - Default WIFI Password: none
             - 说明: 2022版本为旧版硬件,max版本为mt7916无线网卡版本.
-            
+
             ### OpenWrt Source Code
             - ${{ env.REPO_URL }}
           files: ${{ env.firmware_dir }}/*
