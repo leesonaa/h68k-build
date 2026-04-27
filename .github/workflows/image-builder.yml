@@ -131,6 +131,7 @@ jobs:
             echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> .config
             echo "CONFIG_KERNEL_XDP_SOCKETS=y" >> .config
             echo "CONFIG_PACKAGE_kmod-xdp-sockets-diag=y" >> .config
+            sed -i 's/CONFIG_PACKAGE_perf=m/# CONFIG_PACKAGE_perf is not set/g' .config
             make defconfig
             cp $GITHUB_WORKSPACE/$DIY_SHELL .
             chmod +x diy.sh
