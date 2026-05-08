@@ -6,14 +6,14 @@ on:
       source_repo:
         description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
-        default: v24.10.5
+        default: v24.10.6
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
-        default: "https://downloads.immortalwrt.org/releases/24.10.5/targets/rockchip/armv8/immortalwrt-toolchain-24.10.5-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+        default: "https://downloads.immortalwrt.org/releases/24.10.6/targets/rockchip/armv8/immortalwrt-toolchain-24.10.6-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
       defconfig:
         description: "输入默认config 下载地址"
-        default: "https://downloads.immortalwrt.org/releases/24.10.5/targets/rockchip/armv8/config.buildinfo"
+        default: "https://downloads.immortalwrt.org/releases/24.10.6/targets/rockchip/armv8/config.buildinfo"
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: default.config
