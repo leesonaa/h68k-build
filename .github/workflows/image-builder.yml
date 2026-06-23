@@ -33,6 +33,7 @@ jobs:
           - h68k-new
           - h68k-old
           - h68k-max
+          - h28k
       fail-fast: false
 
     steps:
@@ -86,6 +87,9 @@ jobs:
           elif [ "${{ matrix.device }}" == "h68k-max" ]; then
             cp $GITHUB_WORKSPACE/patch/add_max.sh .
             bash add_max.sh
+          elif [ "${{ matrix.device }}" == "h28k" ]; then
+            cp $GITHUB_WORKSPACE/patch/add_h28k.sh .
+            bash add_h28k.sh
           fi
 
       - name: Update feeds
@@ -115,7 +119,11 @@ jobs:
         run: |
             cd /mnt/openwrt
             wget $DEFCONFIG -O .config
-            echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
+            if [ "${{ matrix.device }}" == "h28k" ]; then
+              echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y" >> .config
+            else
+              echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
+            fi
             echo "CONFIG_DEVEL=y" >> .config
             echo "CONFIG_EXTERNAL_TOOLCHAIN=y" >> .config
             echo "CONFIG_TARGET_NAME=\"aarch64-openwrt-linux\"" >> .config
@@ -167,6 +175,8 @@ jobs:
             echo "tag_suffix=H68k-v2022旧版硬件" >> "$GITHUB_ENV"
           elif [ "${{ matrix.device }}" == "h68k-max" ]; then
             echo "tag_suffix=H68k-Max" >> "$GITHUB_ENV"
+          elif [ "${{ matrix.device }}" == "h28k" ]; then
+            echo "tag_suffix=H28k" >> "$GITHUB_ENV"
           fi
 
       - name: Upload firmware to release
