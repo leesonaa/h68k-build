@@ -10,10 +10,10 @@ on:
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
-        default: "https://downloads.immortalwrt.org/releases/25.12.0/targets/rockchip/armv8/immortalwrt-toolchain-25.12.0-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+        default: "https://downloads.immortalwrt.org/releases/25.12.2/targets/rockchip/armv8/immortalwrt-toolchain-25.12.2-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
       defconfig:
         description: "输入默认config 下载地址"
-        default: "https://downloads.immortalwrt.org/releases/25.12.0/targets/rockchip/armv8/config.buildinfo"
+        default: "https://downloads.immortalwrt.org/releases/25.12.2/targets/rockchip/armv8/config.buildinfo"
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   CONFIG_FILE: default.config
@@ -52,6 +52,15 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           sudo timedatectl set-timezone "$TZ"
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force 2>/dev/null || true
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google-chrome-stable microsoft-edge-stable temurin* 2>/dev/null || true
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          df -h
 
       - name: Initialization environment
         env:
@@ -114,6 +123,13 @@ jobs:
           echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
           echo "GCC_VER=$GCC_VER" >> $GITHUB_ENV
 
+      - name: Configure external toolchain
+        run: |
+          cd /mnt/openwrt
+          ./scripts/ext-toolchain.sh \
+            --toolchain "$TOOLCHAIN_DIR" \
+            --config "$TARGET_CONFIG" \
+            --overwrite-config
 
       - name: Make menuconfig
         run: |
@@ -125,11 +141,6 @@ jobs:
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
             fi
             echo "CONFIG_DEVEL=y" >> .config
-            echo "CONFIG_EXTERNAL_TOOLCHAIN=y" >> .config
-            echo "CONFIG_TARGET_NAME=\"aarch64-openwrt-linux\"" >> .config
-            echo "CONFIG_TOOLCHAIN_PREFIX=\"aarch64-openwrt-linux-musl-\"" >> .config
-            echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
-            echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
