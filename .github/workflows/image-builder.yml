@@ -126,13 +126,12 @@ jobs:
       - name: Make menuconfig
         run: |
             cd /mnt/openwrt
-            wget $DEFCONFIG -O .config
+            ./scripts/ext-toolchain.sh --toolchain "$TOOLCHAIN_DIR" --config rockchip/armv8 --overwrite-config
             if [ "${{ matrix.device }}" == "h28k" ]; then
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y" >> .config
             else
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
             fi
-            ./scripts/ext-toolchain.sh --toolchain "$TOOLCHAIN_DIR" --config rockchip/armv8 --overwrite-config
             echo "CONFIG_DEVEL=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
