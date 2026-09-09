@@ -6,7 +6,7 @@ on:
       source_repo:
         description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
-        default: v25.12.0
+        default: v25.12.2
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
@@ -123,14 +123,6 @@ jobs:
           echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
           echo "GCC_VER=$GCC_VER" >> $GITHUB_ENV
 
-      - name: Configure external toolchain
-        run: |
-          cd /mnt/openwrt
-          ./scripts/ext-toolchain.sh \
-            --toolchain "$TOOLCHAIN_DIR" \
-            --config rockchip/armv8 \
-            --overwrite-config
-
       - name: Make menuconfig
         run: |
             cd /mnt/openwrt
@@ -140,6 +132,7 @@ jobs:
             else
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
             fi
+            ./scripts/ext-toolchain.sh --toolchain "$TOOLCHAIN_DIR" --config rockchip/armv8 --overwrite-config
             echo "CONFIG_DEVEL=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
             echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
@@ -162,7 +155,7 @@ jobs:
           echo -e "download package"
           make download -j$(nproc)
           echo -e "$(nproc) thread compile"
-          make -j$(nproc) V=s
+          make -j$(nproc) || make -j1 V=s
           echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
 
       - name: Check space usage
