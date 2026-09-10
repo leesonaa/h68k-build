@@ -141,7 +141,8 @@ jobs:
           cd /mnt/openwrt
           echo -e "download package"
           make download -j$(nproc)
-          make toolchain/install
+          echo -e "install toolchain"
+          make toolchain/install -j$(nproc) V=s
           echo -e "$(nproc) thread compile"
           make -j$(nproc) V=s
           echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
