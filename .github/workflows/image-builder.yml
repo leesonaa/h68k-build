@@ -1,803 +1,186 @@
-name: Build ImmortalWrt Image
+name: Build Openwrt Image
 
 on:
   workflow_dispatch:
     inputs:
       source_repo:
-        description: "选择要编译的 ImmortalWrt 源分支或 tag"
+        description: "选择要编译的 OpenWrt 源分支或 tag"
         required: true
         default: v25.12.2
-
       toolchain_repo:
         description: "输入 toolchain 下载地址"
         required: true
         default: "https://downloads.immortalwrt.org/releases/25.12.2/targets/rockchip/armv8/immortalwrt-toolchain-25.12.2-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
-
       defconfig:
-        description: "输入默认 config 下载地址"
-        required: true
+        description: "输入默认config 下载地址"
         default: "https://downloads.immortalwrt.org/releases/25.12.2/targets/rockchip/armv8/config.buildinfo"
-
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-
   CONFIG_FILE: default.config
   DIY_SHELL: diy.sh
-
   TZ: Asia/Shanghai
-
   SOURCE_REPO: ${{ github.event.inputs.source_repo }}
   TOOLCHAIN_REPO: ${{ github.event.inputs.toolchain_repo }}
   DEFCONFIG: ${{ github.event.inputs.defconfig }}
 
 jobs:
-
   build-firmware:
-
-    name: Build ImmortalWrt - ${{ matrix.device }}
-
+    name: Build H68k immortalwrt image - ${{ matrix.device }}
     runs-on: ubuntu-22.04
-
     strategy:
-      fail-fast: false
-
       matrix:
         device:
           - h68k-new
           - h68k-old
           - h68k-max
           - h28k
+      fail-fast: false
 
     steps:
-
-      # ============================================================
-      # Checkout current build repository
-      # ============================================================
-
-      - name: Checkout build repository
+      - name: Checkout current repo
         uses: actions/checkout@v5
 
-
-      # ============================================================
-      # Checkout private device patch repository
-      # ============================================================
-
-      - name: Checkout device patch repository
+      - name: Checkout private repo
         uses: actions/checkout@v5
         with:
           repository: leesonaa/immortalwrt-h68k
           token: ${{ secrets.GH_TOKEN }}
           path: patch
 
-
-      # ============================================================
-      # Initialize environment
-      # ============================================================
-
-      - name: Initialize environment
+      - name: Init Env
         run: |
-          set -eux
-
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-
           sudo timedatectl set-timezone "$TZ"
-
-          echo "========================================"
-          echo "Build environment"
-          echo "========================================"
-
-          echo "Device       : ${{ matrix.device }}"
-          echo "Source       : $SOURCE_REPO"
-          echo "Toolchain    : $TOOLCHAIN_REPO"
-          echo "Defconfig    : $DEFCONFIG"
-
-          echo "========================================"
-
-
-      # ============================================================
-      # Free GitHub Actions disk space
-      # ============================================================
-
-      - name: Free disk space
-        run: |
-          set -eux
-
-          sudo rm -rf \
-            /usr/share/dotnet \
-            /usr/local/lib/android \
-            /opt/ghc \
-            /opt/hostedtoolcache/CodeQL
-
-          sudo docker image prune --all --force 2>/dev/null || true
-
-          sudo -E apt-get -y purge \
-            azure-cli \
-            ghc* \
-            zulu* \
-            llvm* \
-            firefox \
-            google-chrome-stable \
-            microsoft-edge-stable \
-            temurin* \
-            2>/dev/null || true
-
-          sudo -E apt-get -y autoremove --purge
-          sudo -E apt-get clean
-
-          df -h
-
-
-      # ============================================================
-      # Install build dependencies
-      # ============================================================
-
-      - name: Install build dependencies
+      - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
-
         run: |
-          set -eux
-
-          sudo -E apt update
-
-          sudo apt install -y \
-            duf \
-            ack \
-            antlr3 \
-            asciidoc \
-            autoconf \
-            automake \
-            autopoint \
-            binutils \
-            bison \
-            build-essential \
-            bzip2 \
-            ccache \
-            clang \
-            clang-15 \
-            cmake \
-            cpio \
-            curl \
-            device-tree-compiler \
-            ecj \
-            fastjar \
-            flex \
-            gawk \
-            gettext \
-            gcc-multilib \
-            g++-multilib \
-            git \
-            gnutls-dev \
-            gperf \
-            haveged \
-            help2man \
-            intltool \
-            lib32gcc-s1 \
-            libc6-dev-i386 \
-            libelf-dev \
-            libglib2.0-dev \
-            libgmp3-dev \
-            libltdl-dev \
-            libmpc-dev \
-            libmpfr-dev \
-            libncurses-dev \
-            libpython3-dev \
-            libreadline-dev \
-            libssl-dev \
-            libtool \
-            libyaml-dev \
-            libz-dev \
-            lld \
-            llvm \
-            llvm-15 \
-            lrzsz \
-            mkisofs \
-            msmtp \
-            nano \
-            ninja-build \
-            p7zip \
-            p7zip-full \
-            patch \
-            pkgconf \
-            python3 \
-            python3-pip \
-            python3-ply \
-            python3-docutils \
-            python3-pyelftools \
-            qemu-utils \
-            re2c \
-            rsync \
-            scons \
-            squashfs-tools \
-            subversion \
-            swig \
-            texinfo \
-            uglifyjs \
-            upx-ucl \
-            unzip \
-            vim \
-            wget \
-            xmlto \
-            xxd \
-            zlib1g-dev \
-            zstd \
-            npm \
-            jq
-
-
-      # ============================================================
-      # Clone ImmortalWrt
-      # ============================================================
-
-      - name: Clone ImmortalWrt source
+          sudo -E apt update && sudo apt install -y \
+          duf ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
+          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
+          libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
+          ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
+          python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
+          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd clang-15 llvm-15 npm jq
+      - name: Clone source code
         run: |
-          set -eux
-
           duf
-
           sudo -E chmod -R 777 /mnt
-
-          git clone \
-            --filter=blob:none \
-            --no-checkout \
-            "$REPO_URL" \
-            /mnt/openwrt
-
+          git clone $REPO_URL /mnt/openwrt
           cd /mnt/openwrt
-
-          git checkout "$SOURCE_REPO"
-
-          echo "========================================"
-          echo "ImmortalWrt source"
-          echo "========================================"
-
-          git describe --tags --always --dirty
-          git rev-parse HEAD
-
-          echo "========================================"
-
-
-      # ============================================================
-      # Apply H68K / H28K device modifications
-      # ============================================================
-
-      - name: Prepare source for ${{ matrix.device }}
+          git checkout $SOURCE_REPO
+      - name: Prepare source for device - ${{ matrix.device }}
         run: |
-          set -eux
-
           cd /mnt/openwrt
-
-          case "${{ matrix.device }}" in
-
-            h68k-new)
-              echo "Applying H68K new hardware patches"
-              cp "$GITHUB_WORKSPACE/patch/add.sh" .
-              chmod +x add.sh
-              ./add.sh
-              ;;
-
-            h68k-old)
-              echo "Applying H68K 2022 hardware patches"
-              cp "$GITHUB_WORKSPACE/patch/add2022.sh" .
-              chmod +x add2022.sh
-              ./add2022.sh
-              ;;
-
-            h68k-max)
-              echo "Applying H68K Max / MT7916 patches"
-              cp "$GITHUB_WORKSPACE/patch/add_max.sh" .
-              chmod +x add_max.sh
-              ./add_max.sh
-              ;;
-
-            h28k)
-              echo "Applying H28K patches"
-              cp "$GITHUB_WORKSPACE/patch/add_h28k.sh" .
-              chmod +x add_h28k.sh
-              ./add_h28k.sh
-              ;;
-
-            *)
-              echo "ERROR: Unknown device: ${{ matrix.device }}"
-              exit 1
-              ;;
-
-          esac
-
-
-      # ============================================================
-      # Update feeds
-      # ============================================================
-
+          if [ "${{ matrix.device }}" == "h68k-new" ]; then
+            cp $GITHUB_WORKSPACE/patch/add.sh .
+            bash add.sh
+          elif [ "${{ matrix.device }}" == "h68k-old" ]; then
+            cp $GITHUB_WORKSPACE/patch/add2022.sh .
+            bash add2022.sh
+          elif [ "${{ matrix.device }}" == "h68k-max" ]; then
+            cp $GITHUB_WORKSPACE/patch/add_max.sh .
+            bash add_max.sh
+          elif [ "${{ matrix.device }}" == "h28k" ]; then
+            cp $GITHUB_WORKSPACE/patch/add_h28k.sh .
+            bash add_h28k.sh
+          fi
       - name: Update feeds
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          ./scripts/feeds update -a
-
-
-      # ============================================================
-      # Install feeds
-      # ============================================================
+        run: cd /mnt/openwrt && ./scripts/feeds update -a
 
       - name: Install feeds
+        run: cd /mnt/openwrt && ./scripts/feeds install -a
+
+      - name: Download toolchain
         run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          ./scripts/feeds install -a
-
-
-      # ============================================================
-      # Download external toolchain
-      # ============================================================
-
-      - name: Download external toolchain
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          echo "========================================"
-          echo "Downloading external toolchain"
-          echo "========================================"
-
+          echo "Downloading toolchain from $TOOLCHAIN_REPO"
           TOOLCHAIN_FILE="${TOOLCHAIN_REPO##*/}"
-
-          echo "URL:"
-          echo "$TOOLCHAIN_REPO"
-
-          wget \
-            --progress=dot:giga \
-            -O "$TOOLCHAIN_FILE" \
-            "$TOOLCHAIN_REPO"
-
-          test -s "$TOOLCHAIN_FILE"
-
-          GCC_VER="$(
-            echo "$TOOLCHAIN_FILE" |
-            grep -oP 'gcc-\K[0-9]+\.[0-9]+\.[0-9]+' |
-            head -n1
-          )"
-
-          echo "Detected GCC version: ${GCC_VER:-unknown}"
-
+          wget -O $TOOLCHAIN_FILE $TOOLCHAIN_REPO
+          GCC_VER=$(echo $TOOLCHAIN_FILE | grep -oP 'gcc-\K[0-9]+\.[0-9]+\.[0-9]+')
+          echo "Detected GCC version: $GCC_VER"
           TOOLCHAIN_DIR="$HOME/toolchain-aarch64"
-
-          rm -rf "$TOOLCHAIN_DIR"
-          mkdir -p "$TOOLCHAIN_DIR"
-
-          tar \
-            -I zstd \
-            -xf "$TOOLCHAIN_FILE" \
-            -C "$TOOLCHAIN_DIR" \
-            --strip-components=2
-
-          echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> "$GITHUB_ENV"
-          echo "GCC_VER=$GCC_VER" >> "$GITHUB_ENV"
-
-          echo "========================================"
-          echo "Toolchain directory"
-          echo "========================================"
-
-          ls -lah "$TOOLCHAIN_DIR"
-          ls -lah "$TOOLCHAIN_DIR/bin" | head -30
-
-
-      # ============================================================
-      # Generate initial target configuration
-      #
-      # IMPORTANT:
-      #
-      # 1. Download official buildinfo
-      # 2. Select device
-      # 3. make defconfig
-      # 4. external toolchain
-      #
-      # Do NOT run make defconfig again after adding BPF manually.
-      # Final configuration uses make olddefconfig.
-      # ============================================================
-
-      - name: Configure target and external toolchain
+          mkdir -p $TOOLCHAIN_DIR
+          tar -I zstd -xf $TOOLCHAIN_FILE -C $TOOLCHAIN_DIR --strip-components=2
+          echo "TOOLCHAIN_DIR=$TOOLCHAIN_DIR" >> $GITHUB_ENV
+          echo "GCC_VER=$GCC_VER" >> $GITHUB_ENV
+      - name: Make menuconfig
         run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          echo "========================================"
-          echo "Download base config"
-          echo "========================================"
-
-          rm -f .config
-
-          wget \
-            --progress=dot:giga \
-            -O .config \
-            "$DEFCONFIG"
-
-          test -s .config
-
-
-          echo "========================================"
-          echo "Select target device"
-          echo "========================================"
-
-          case "${{ matrix.device }}" in
-
-            h28k)
+            cd /mnt/openwrt
+            wget $DEFCONFIG -O .config
+            if [ "${{ matrix.device }}" == "h28k" ]; then
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y" >> .config
-              ;;
-
-            h68k-new|h68k-old|h68k-max)
+            else
               echo "CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h68k=y" >> .config
-              ;;
-
-            *)
-              echo "ERROR: Unknown device: ${{ matrix.device }}"
-              exit 1
-              ;;
-
-          esac
-
-
-          echo "========================================"
-          echo "Initial make defconfig"
-          echo "========================================"
-
-          make defconfig
-
-
-          echo "========================================"
-          echo "Apply external toolchain"
-          echo "========================================"
-
-          ./scripts/ext-toolchain.sh \
-            --toolchain "$TOOLCHAIN_DIR" \
-            --config rockchip/armv8
-
-
-          echo "========================================"
-          echo "Verify target configuration"
-          echo "========================================"
-
-          grep -E \
-            '^CONFIG_TARGET_(rockchip|rockchip_armv8)' \
-            .config || true
-
-          echo "========================================"
-          echo "Verify external toolchain"
-          echo "========================================"
-
-          grep -E \
-            '^CONFIG_(EXTERNAL_TOOLCHAIN|TOOLCHAIN_ROOT|TOOLCHAIN_PREFIX|TOOLCHAIN_BIN_PATH|TOOLCHAIN_INC_PATH|TOOLCHAIN_LIB_PATH)' \
-            .config || true
-
-
-      # ============================================================
-      # Apply custom DIY script
-      # ============================================================
-
-      - name: Apply custom DIY configuration
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          cp \
-            "$GITHUB_WORKSPACE/$DIY_SHELL" \
+            fi
+            echo "CONFIG_DEVEL=y" >> .config
+            echo "CONFIG_EXTERNAL_TOOLCHAIN=y" >> .config
+            echo "CONFIG_TARGET_NAME=\"aarch64-openwrt-linux\"" >> .config
+            echo "CONFIG_TOOLCHAIN_PREFIX=\"aarch64-openwrt-linux-musl-\"" >> .config
+            echo "CONFIG_TOOLCHAIN_ROOT=\"$TOOLCHAIN_DIR\"" >> .config
+            echo "CONFIG_EXTERNAL_GCC_VERSION=\"$GCC_VER\"" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO=y" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO_REDUCED=n" >> .config
+            echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
+            echo "CONFIG_KERNEL_CGROUPS=y" >> .config
+            echo "CONFIG_KERNEL_CGROUP_BPF=y" >> .config
+            echo "CONFIG_KERNEL_BPF_EVENTS=y" >> .config
+            echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> .config
+            echo "CONFIG_KERNEL_XDP_SOCKETS=y" >> .config
+            echo "CONFIG_PACKAGE_kmod-xdp-sockets-diag=y" >> .config
+            sed -i 's/CONFIG_PACKAGE_perf=m/# CONFIG_PACKAGE_perf is not set/g' .config
+            cp $GITHUB_WORKSPACE/$DIY_SHELL .
+            chmod +x diy.sh
             ./diy.sh
-
-          chmod +x ./diy.sh
-
-          ./diy.sh
-
-
-      # ============================================================
-      # Apply BPF / BTF / XDP configuration
-      #
-      # These options are intentionally added AFTER diy.sh.
-      #
-      # Final resolution is performed by make olddefconfig.
-      # ============================================================
-
-      - name: Configure BPF BTF XDP
+            make defconfig
+            cat .config
+      - name: Compile the firmware
         run: |
-          set -eux
-
           cd /mnt/openwrt
-
-          cat <<'EOF' >> .config
-
-          #
-          # BPF / BTF / XDP
-          #
-
-          CONFIG_DEVEL=y
-
-          CONFIG_BPF_TOOLCHAIN_HOST=y
-
-          CONFIG_KERNEL_CGROUPS=y
-          CONFIG_KERNEL_CGROUP_BPF=y
-          CONFIG_KERNEL_BPF_EVENTS=y
-
-          CONFIG_KERNEL_DEBUG_INFO=y
-          CONFIG_KERNEL_DEBUG_INFO_BTF=y
-          CONFIG_KERNEL_DEBUG_INFO_REDUCED=n
-
-          CONFIG_KERNEL_XDP_SOCKETS=y
-
-          CONFIG_PACKAGE_kmod-xdp-sockets-diag=y
-
-          EOF
-
-
-      # ============================================================
-      # Resolve final configuration
-      # ============================================================
-
-      - name: Generate final configuration
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          echo "========================================"
-          echo "Running make olddefconfig"
-          echo "========================================"
-
-          make olddefconfig
-
-
-      # ============================================================
-      # Validate final configuration
-      # ============================================================
-
-      - name: Validate final configuration
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          echo
-          echo "========================================"
-          echo "Target configuration"
-          echo "========================================"
-
-          grep -E \
-            '^CONFIG_TARGET_(rockchip|rockchip_armv8)' \
-            .config || true
-
-
-          echo
-          echo "========================================"
-          echo "Device configuration"
-          echo "========================================"
-
-          grep -E \
-            '^CONFIG_TARGET_rockchip_armv8_DEVICE_' \
-            .config || true
-
-
-          echo
-          echo "========================================"
-          echo "External toolchain configuration"
-          echo "========================================"
-
-          grep -E \
-            '^CONFIG_(EXTERNAL_TOOLCHAIN|TOOLCHAIN_ROOT|TOOLCHAIN_PREFIX|TOOLCHAIN_BIN_PATH|TOOLCHAIN_INC_PATH|TOOLCHAIN_LIB_PATH)' \
-            .config || true
-
-
-          echo
-          echo "========================================"
-          echo "BPF / BTF / XDP configuration"
-          echo "========================================"
-
-          grep -E \
-            '^(CONFIG_(DEVEL|BPF_TOOLCHAIN_HOST|KERNEL_CGROUPS|KERNEL_CGROUP_BPF|KERNEL_BPF_EVENTS|KERNEL_DEBUG_INFO|KERNEL_DEBUG_INFO_REDUCED|KERNEL_DEBUG_INFO_BTF|KERNEL_XDP_SOCKETS)|CONFIG_PACKAGE_kmod-xdp-sockets-diag)=' \
-            .config || true
-
-
-          echo
-          echo "========================================"
-          echo "Final diffconfig"
-          echo "========================================"
-
-          ./scripts/diffconfig.sh || true
-
-
-          echo
-          echo "========================================"
-          echo "Config validation complete"
-          echo "========================================"
-
-          test -n "$(grep '^CONFIG_TARGET_rockchip_armv8_DEVICE_' .config)"
-
-
-      # ============================================================
-      # Download package sources
-      # ============================================================
-
-      - name: Download package sources
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          make download -j"$(nproc)"
-
-
-      # ============================================================
-      # Compile firmware
-      # ============================================================
-
-      - name: Compile firmware
-        run: |
-          set -eux
-
-          cd /mnt/openwrt
-
-          echo "========================================"
-          echo "Start compilation"
-          echo "========================================"
-
-          echo "CPU threads: $(nproc)"
-          echo "Source      : $SOURCE_REPO"
-          echo "Device      : ${{ matrix.device }}"
-          echo "GCC         : ${GCC_VER:-unknown}"
-
-          make -j"$(nproc)" || \
-            make -j1 V=s
-
-          echo "release=$(date +"%Y.%m.%d-%H%M")" >> "$GITHUB_ENV"
-
-
-      # ============================================================
-      # Check disk space
-      # ============================================================
-
-      - name: Check disk usage
+          echo -e "download package"
+          make download -j$(nproc)
+          echo -e "$(nproc) thread compile"
+          make -j$(nproc) V=s
+          echo "release=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
+      - name: Check space usage
         if: (!cancelled())
         run: |
-          df -h
-
-          echo
-          echo "========================================"
-          echo "OpenWrt build directory"
-          echo "========================================"
-
-          du -sh /mnt/openwrt 2>/dev/null || true
-
-
-      # ============================================================
-      # Organize firmware output
-      # ============================================================
-
+          duf
       - name: Organize firmware files
         if: (!cancelled())
         run: |
-          set -eux
-
           cd /mnt/openwrt/bin/targets/*/*
-
-          echo "Firmware directory:"
-          pwd
-
-          echo
-          echo "Before cleanup:"
-          ls -lah
-
-          # Remove packages and build metadata.
-          # Keep firmware images and kernel/rootfs artifacts.
-          rm -rf packages
-          rm -f \
-            *.buildinfo \
-            *.manifest
-
-          echo
-          echo "After cleanup:"
-          ls -lah
-
+          rm -rf packages *.buildinfo *.manifest *.zst
           echo "firmware_dir=$PWD" >> "$GITHUB_ENV"
-
-
-      # ============================================================
-      # Set release tag
-      # ============================================================
-
       - name: Set release tag suffix
         run: |
-          set -eux
-
-          case "${{ matrix.device }}" in
-
-            h68k-new)
-              echo "tag_suffix=H68K" >> "$GITHUB_ENV"
-              ;;
-
-            h68k-old)
-              echo "tag_suffix=H68K-v2022-OLD" >> "$GITHUB_ENV"
-              ;;
-
-            h68k-max)
-              echo "tag_suffix=H68K-Max-MT7916" >> "$GITHUB_ENV"
-              ;;
-
-            h28k)
-              echo "tag_suffix=H28K" >> "$GITHUB_ENV"
-              ;;
-
-            *)
-              echo "ERROR: Unknown device"
-              exit 1
-              ;;
-
-          esac
-
-
-      # ============================================================
-      # Upload firmware to GitHub Release
-      # ============================================================
-
+          if [ "${{ matrix.device }}" == "h68k-new" ]; then
+            echo "tag_suffix=H68k" >> "$GITHUB_ENV"
+          elif [ "${{ matrix.device }}" == "h68k-old" ]; then
+            echo "tag_suffix=H68k-v2022旧版硬件" >> "$GITHUB_ENV"
+          elif [ "${{ matrix.device }}" == "h68k-max" ]; then
+            echo "tag_suffix=H68k-Max" >> "$GITHUB_ENV"
+          elif [ "${{ matrix.device }}" == "h28k" ]; then
+            echo "tag_suffix=H28k" >> "$GITHUB_ENV"
+          fi
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v2
-
         if: (!cancelled())
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
         with:
           tag_name: ${{ env.release }}-${{ env.tag_suffix }}-${{ env.SOURCE_REPO }}
-
-          name: ImmortalWrt ${{ env.SOURCE_REPO }} - ${{ env.tag_suffix }}
-
           body: |
-            ## ImmortalWrt Image Information
-
-            ### Device
-
-            - Device: ${{ matrix.device }}
-            - Source: ${{ env.SOURCE_REPO }}
-            - GCC: ${{ env.GCC_VER }}
-
-            ### Network
-
+            ### OpenWrt Image Information
             - Default IP: 192.168.100.1
             - Default WAN: eth3
-
-            ### Login
-
-            - Username: root
-            - Password: none
-
-            ### WiFi
-
-            - Default WiFi Name: immortalwrt
-            - Default WiFi Password: none
-
-            ### Hardware
-
-            - H68K-new: New hardware
-            - H68K-old: 2022 old hardware
-            - H68K-Max: MT7916 wireless version
-            - H28K: HINLINK H28K RK3528
-
-            ### Build Features
-
-            - External ImmortalWrt toolchain
-            - BPF
-            - BTF
-            - XDP sockets
-            - kmod-xdp-sockets-diag
-
-            ### Source
-
-            ${{ env.REPO_URL }}
-
-          files: |
-            ${{ env.firmware_dir }}/*
+            - Default Username: root
+            - Default Password: none
+            - Default WIFI Name: immrotalwrt
+            - Default WIFI Password: none
+            - 说明: 2022版本为旧版硬件,max版本为mt7916无线网卡版本.
+            ### OpenWrt Source Code
+            - ${{ env.REPO_URL }}
+          files: ${{ env.firmware_dir }}/*
